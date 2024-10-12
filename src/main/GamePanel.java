@@ -8,6 +8,8 @@ import model.Inventory;
 
 public class GamePanel extends JPanel {
     private final Image backgroundImage;
+    private Image playerImage;
+    private Image npcImage;
     private int playerX = 100, playerY = 100;
     private NPC npc;
     private boolean showDialog = false;
@@ -16,22 +18,50 @@ public class GamePanel extends JPanel {
     private int itemX = 200, itemY = 150;
     private boolean itemPickedUp = false;
     private Inventory inventory;
+    private int[][] map = {  // 地图数组：1表示墙，0表示可通过
+            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+            {1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+            {1, 0, 1, 1, 0, 1, 0, 1, 0, 1},
+            {1, 0, 0, 1, 0, 1, 0, 1, 0, 1},
+            {1, 1, 0, 0, 0, 0, 0, 0, 0, 1},
+            {1, 0, 0, 0, 0, 1, 0, 1, 0, 1},
+            {1, 0, 1, 1, 0, 0, 0, 1, 0, 1},
+            {1, 0, 0, 1, 1, 1, 0, 0, 0, 1},
+            {1, 1, 0, 0, 0, 0, 0, 1, 0, 1},
+            {1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+    };
+    private final int tileSize = 50;
 
-    public GamePanel(String imagePath) {
-        backgroundImage = new ImageIcon(imagePath).getImage();
+    public GamePanel(String backgroundPath, String playerImagePath, String npcImagePath) {
+        backgroundImage = new ImageIcon(backgroundPath).getImage();
+        playerImage = new ImageIcon(playerImagePath).getImage();  // 加载主角图像
+        npcImage = new ImageIcon(npcImagePath).getImage();        // 加载NPC图像
         npc = new NPC(300, 200, "你好，勇士！欢迎来到这片神秘的大陆。");
         potion = new Item("药水", "可以恢复20点生命值");
         inventory = new Inventory();
     }
 
+    private Point scaledSize(Image image, double scale){
+        int originalWidth = image.getWidth(this);
+        int originalHeight = image.getHeight(this);
+
+        Point p = new Point();
+        p.x = (int)(originalWidth * scale);
+        p.y = (int)(originalHeight * scale);
+
+        return p;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
+
         super.paintComponent(g);
         g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-        g.setColor(Color.RED);
-        g.fillRect(playerX, playerY, 30, 30);
-        g.setColor(Color.BLUE);
-        g.fillRect(npc.getX(), npc.getY(), 30, 30);
+        drawMap(g); // 绘制地图
+
+        g.drawImage(playerImage, playerX, playerY, this.scaledSize(playerImage, 1.5).x, this.scaledSize(playerImage, 1.5).y, this);          // 绘制主角
+
+        g.drawImage(npcImage, npc.getX(), npc.getY(), this.scaledSize(npcImage, 1.5).x, this.scaledSize(npcImage, 1.5).y, this);       // 绘制NPC
 
         if (!itemPickedUp) {
             g.setColor(Color.GREEN);
@@ -47,9 +77,32 @@ public class GamePanel extends JPanel {
         }
     }
 
+    // 绘制地图
+    public void drawMap(Graphics g) {
+        for (int y = 0; y < map.length; y++) {
+            for (int x = 0; x < map[0].length; x++) {
+                if (map[y][x] == 1) {
+                    g.setColor(Color.GRAY); // 用灰色表示隐形墙
+                    g.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+                }
+            }
+        }
+    }
+
     public void movePlayer(int dx, int dy) {
-        playerX += dx;
-        playerY += dy;
+        int newPlayerX = playerX + dx;
+        int newPlayerY = playerY + dy;
+
+        // 计算主角当前位置在地图中的格子坐标
+        int playerTileX = newPlayerX / tileSize;
+        int playerTileY = newPlayerY / tileSize;
+
+        // 检查是否撞到墙
+        if (map[playerTileY][playerTileX] != 1) {
+            playerX = newPlayerX;
+            playerY = newPlayerY;
+        }
+
         checkInteraction();
         repaint();
     }
