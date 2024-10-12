@@ -2,42 +2,55 @@ package main;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import model.Player;
 
 public class KeyInputHandler implements KeyListener {
-    private GamePanel gamePanel;
+    private Player player;
 
-    public KeyInputHandler(GamePanel gamePanel) {
-        this.gamePanel = gamePanel;
+    public KeyInputHandler(Player player) {
+        this.player = player;
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
-        int keyCode = e.getKeyCode();
-        switch (keyCode) {
-            case KeyEvent.VK_UP:
-                gamePanel.movePlayer(0, -10);
-                break;
-            case KeyEvent.VK_DOWN:
-                gamePanel.movePlayer(0, 10);
-                break;
-            case KeyEvent.VK_LEFT:
-                gamePanel.movePlayer(-10, 0);
-                break;
-            case KeyEvent.VK_RIGHT:
-                gamePanel.movePlayer(10, 0);
-                break;
-            case KeyEvent.VK_E: // 拾取物品
-                gamePanel.checkInteraction();
-                break;
-            case KeyEvent.VK_I: // 显示背包
-                gamePanel.showInventory();
-                break;
+        int key = e.getKeyCode();
+
+        // 设置相应方向的键被按下
+        if (key == KeyEvent.VK_W) {
+            player.setMovingUp(true);
+        }
+        if (key == KeyEvent.VK_S) {
+            player.setMovingDown(true);
+        }
+        if (key == KeyEvent.VK_A) {
+            player.setMovingLeft(true);
+        }
+        if (key == KeyEvent.VK_D) {
+            player.setMovingRight(true);
         }
     }
 
     @Override
-    public void keyReleased(KeyEvent e) {}
+    public void keyReleased(KeyEvent e) {
+        int key = e.getKeyCode();
+
+        // 停止相应方向的键
+        if (key == KeyEvent.VK_W) {
+            player.setMovingUp(false);
+        }
+        if (key == KeyEvent.VK_S) {
+            player.setMovingDown(false);
+        }
+        if (key == KeyEvent.VK_A) {
+            player.setMovingLeft(false);
+        }
+        if (key == KeyEvent.VK_D) {
+            player.setMovingRight(false);
+        }
+    }
 
     @Override
-    public void keyTyped(KeyEvent e) {}
+    public void keyTyped(KeyEvent e) {
+        // 不需要实现
+    }
 }
