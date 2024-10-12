@@ -7,7 +7,7 @@ import model.Item;
 import model.Inventory;
 
 public class GamePanel extends JPanel {
-    private Image backgroundImage;
+    private final Image backgroundImage;
     private int playerX = 100, playerY = 100;
     private NPC npc;
     private boolean showDialog = false;
