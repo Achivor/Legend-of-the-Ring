@@ -22,15 +22,15 @@ public class Player {
     private String currentDirection = "down";
     private boolean isMoving = false;
 
-    private Image[] playerUpImages;
-    private Image[] playerDownImages;
-    private Image[] playerLeftImages;
-    private Image[] playerRightImages;
+    private final Image[] playerUpImages;
+    private final Image[] playerDownImages;
+    private final Image[] playerLeftImages;
+    private final Image[] playerRightImages;
 
-    private Image playerUpStandImage;
-    private Image playerDownStandImage;
-    private Image playerLeftStandImage;
-    private Image playerRightStandImage;
+    private final Image playerUpStandImage;
+    private final Image playerDownStandImage;
+    private final Image playerLeftStandImage;
+    private final Image playerRightStandImage;
 
     private int animationFrame = 0;
     private int animationSpeed = 10;
@@ -39,8 +39,8 @@ public class Player {
     private double scaleFactor = 1.0; // 你可以调整这个因子来改变大小，保持比例
 
     // 存储图像的原始宽度和高度
-    private int originalWidth;
-    private int originalHeight;
+    private final int originalWidth;
+    private final int originalHeight;
 
     public Player() {
         // 加载行走动画图片
@@ -117,29 +117,29 @@ public class Player {
     public void moveUp(List<Rectangle> walls) {
         if (canMove(playerX, playerY - speed, walls)) {
             playerY -= speed;
-            currentDirection = "up";
         }
+        currentDirection = "up";
     }
 
     public void moveDown(List<Rectangle> walls) {
         if (canMove(playerX, playerY + speed, walls)) {
             playerY += speed;
-            currentDirection = "down";
         }
+        currentDirection = "down";
     }
 
     public void moveLeft(List<Rectangle> walls) {
         if (canMove(playerX - speed, playerY, walls)) {
             playerX -= speed;
-            currentDirection = "left";
         }
+        currentDirection = "left";
     }
 
     public void moveRight(List<Rectangle> walls) {
         if (canMove(playerX + speed, playerY, walls)) {
             playerX += speed;
-            currentDirection = "right";
         }
+        currentDirection = "right";
     }
 
     private boolean canMove(int x, int y, List<Rectangle> walls) {
@@ -206,9 +206,17 @@ public class Player {
             }
         }
 
+        int width, height;
         // 根据缩放因子绘制主角，保持比例
-        int width = (int)(originalWidth * scaleFactor);
-        int height = (int)(originalHeight * scaleFactor);
+        if (!isMoving){
+            width = (int)(originalWidth * (scaleFactor - 0.1));
+            height = (int)(originalHeight * scaleFactor);
+        } else {
+            width = (int) (originalWidth * scaleFactor);
+            height = (int) (originalHeight * scaleFactor);
+        }
+
+
         g.drawImage(imageToDraw, playerX, playerY, width, height, null);
     }
 

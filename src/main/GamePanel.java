@@ -44,9 +44,10 @@ public class GamePanel extends JPanel {
     private void initWalls() {
         walls = new ArrayList<>();
         // 定义空气墙的位置和大小 (x, y, width, height)
-        walls.add(new Rectangle(300, 200, 200, 10)); // 一条横墙
-        walls.add(new Rectangle(500, 100, 10, 300)); // 一条竖墙
-        walls.add(new Rectangle(100, 400, 300, 10)); // 另一条横墙
+        walls.add(new Rectangle(0, 0, 800, 10)); // 一条横墙
+        walls.add(new Rectangle(0, 0, 10, 600)); // 一条竖墙
+        walls.add(new Rectangle(0, 600, 800, 10)); // 另一条横墙
+        walls.add(new Rectangle(800, 0, 10, 600));
         // 你可以继续添加更多的墙
     }
 
