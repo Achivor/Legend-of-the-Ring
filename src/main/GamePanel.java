@@ -1,7 +1,6 @@
 package main;
 
 import model.Player;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -19,6 +18,9 @@ public class GamePanel extends JPanel {
     private String currentWorld; // 当前所在的世界
     private BufferedImage backgroundImage;
     private ArrayList<Rectangle> walls; // 当前世界的空气墙
+
+    // 用于追踪玩家可以返回的世界
+    private String previousWorld;
 
     public GamePanel() {
         player = new Player();
@@ -59,17 +61,30 @@ public class GamePanel extends JPanel {
         walls1.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsNorth = new ArrayList<>();
-        // 定义北世界的墙壁...
+        wallsNorth.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        //wallsNorth.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        wallsNorth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        wallsNorth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsSouth = new ArrayList<>();
-        // 定义南世界的墙壁...
+        wallsSouth.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        wallsSouth.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        wallsSouth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        wallsSouth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsEast = new ArrayList<>();
-        // 定义东世界的墙壁...
+        wallsEast.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        wallsEast.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        wallsEast.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        wallsEast.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsWest = new ArrayList<>();
-        // 定义西世界的墙壁...
+        wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        wallsWest.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        wallsWest.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        wallsWest.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
+        // 将每个世界的空气墙与其对应的世界关联
         worldWalls.put("world_1", walls1);
         worldWalls.put("world_north", wallsNorth);
         worldWalls.put("world_south", wallsSouth);
@@ -79,6 +94,7 @@ public class GamePanel extends JPanel {
 
     // 加载指定的世界
     private void loadWorld(String world) {
+        previousWorld = currentWorld; // 记录上一个世界
         currentWorld = world;
         backgroundImage = worldBackgrounds.get(world);
         walls = worldWalls.get(world);
@@ -89,25 +105,31 @@ public class GamePanel extends JPanel {
 
     public void update() {
         player.update(walls); // 更新玩家并进行碰撞检测
-
         // 检测主角是否到达边缘，并切换世界
         checkWorldSwitch();
     }
 
     private void checkWorldSwitch() {
         // 检查是否到达当前世界边缘
-        if (player.getX() <= 0) { // 到达左边缘
+        if (player.getX() <= 0 && currentWorld.equals("world_1")) { // 到达左边缘
             loadWorld("world_west");
             player.setPosition(790, player.getY()); // 设置玩家传送到新世界右边
-        } else if (player.getX() >= 790) { // 到达右边缘
+        } else if (player.getX() >= 790 && currentWorld.equals("world_1")) { // 到达右边缘
             loadWorld("world_east");
             player.setPosition(10, player.getY()); // 设置玩家传送到新世界左边
         } else if (player.getY() <= 0) { // 到达上边缘
-            loadWorld("world_north");
-            player.setPosition(player.getX(), 590); // 设置玩家传送到新世界底部
+            if (currentWorld.equals("world_1")) {
+                loadWorld("world_north");
+                player.setPosition(player.getX(), 590); // 设置玩家传送到新世界底部
+            }
         } else if (player.getY() >= 590) { // 到达下边缘
-            loadWorld("world_south");
-            player.setPosition(player.getX(), 10); // 设置玩家传送到新世界顶部
+            if (currentWorld.equals("world_north")) {
+                loadWorld(previousWorld);
+                player.setPosition(player.getX(), 10); // 返回到原始世界顶部
+            } else if (currentWorld.equals("world_1")) {
+                loadWorld("world_south");
+                player.setPosition(player.getX(), 10); // 设置玩家传送到新世界顶部
+            }
         }
     }
 
