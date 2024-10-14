@@ -224,4 +224,17 @@ public class Player {
     public void setScaleFactor(double scaleFactor) {
         this.scaleFactor = scaleFactor;
     }
+    public void setPosition(int x, int y) {
+        this.playerX = x;
+        this.playerY = y;
+    }
+    // 新增方法：获取主角的 X 坐标
+    public int getX() {
+        return playerX;
+    }
+
+    // 新增方法：获取主角的 Y 坐标
+    public int getY() {
+        return playerY;
+    }
 }
