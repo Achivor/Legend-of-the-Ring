@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.util.List;
 
 public class Player {
-    private int playerX = 100;  // 主角的初始 X 坐标
-    private int playerY = 100;  // 主角的初始 Y 坐标
-    private int speed = 2; // 修改速度值，降低移动速度
+    private int playerX = 380;  // 主角的初始 X 坐标
+    private int playerY = 280;  // 主角的初始 Y 坐标
+    private int speed = 3; // 修改速度值，降低移动速度
 
     // 用于跟踪移动状态
     private boolean movingUp = false;
@@ -36,7 +36,7 @@ public class Player {
     private int animationSpeed = 10;
     private int animationCounter = 0;
 
-    private double scaleFactor = 1.0; // 你可以调整这个因子来改变大小，保持比例
+    private double scaleFactor = 1.2; // 你可以调整这个因子来改变大小，保持比例
 
     // 存储图像的原始宽度和高度
     private final int originalWidth;
@@ -209,7 +209,7 @@ public class Player {
         int width, height;
         // 根据缩放因子绘制主角，保持比例
         if (!isMoving){
-            width = (int)(originalWidth * (scaleFactor - 0.1));
+            width = (int)(originalWidth * (scaleFactor - 0.2));
             height = (int)(originalHeight * scaleFactor);
         } else {
             width = (int) (originalWidth * scaleFactor);

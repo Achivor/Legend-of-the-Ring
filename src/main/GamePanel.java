@@ -55,34 +55,34 @@ public class GamePanel extends JPanel {
 
         // 初始化每个世界的空气墙
         ArrayList<Rectangle> walls1 = new ArrayList<>();
-        //walls1.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
-        walls1.add(new Rectangle(0, 590, 800, 10)); // 底部墙
-        walls1.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
-        walls1.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+        walls1.add(new Rectangle(0, 0, 360, 260));
+        walls1.add(new Rectangle(440, 0, 360, 260));
+        walls1.add(new Rectangle(0, 340, 360, 260));
+        walls1.add(new Rectangle(440, 340, 360, 260));
 
         ArrayList<Rectangle> wallsNorth = new ArrayList<>();
-        wallsNorth.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        //wallsNorth.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
         //wallsNorth.add(new Rectangle(0, 590, 800, 10)); // 底部墙
-        wallsNorth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
-        wallsNorth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+        //wallsNorth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        //wallsNorth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsSouth = new ArrayList<>();
-        wallsSouth.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
-        wallsSouth.add(new Rectangle(0, 590, 800, 10)); // 底部墙
-        wallsSouth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
-        wallsSouth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+        //wallsSouth.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        //wallsSouth.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        //wallsSouth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        //wallsSouth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsEast = new ArrayList<>();
-        wallsEast.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
-        wallsEast.add(new Rectangle(0, 590, 800, 10)); // 底部墙
-        wallsEast.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
-        wallsEast.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+        //wallsEast.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        //wallsEast.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        //wallsEast.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        //wallsEast.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsWest = new ArrayList<>();
-        wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
-        wallsWest.add(new Rectangle(0, 590, 800, 10)); // 底部墙
-        wallsWest.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
-        wallsWest.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+        //wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        //wallsWest.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        //wallsWest.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        //wallsWest.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         // 将每个世界的空气墙与其对应的世界关联
         worldWalls.put("world_1", walls1);
@@ -111,22 +111,39 @@ public class GamePanel extends JPanel {
 
     private void checkWorldSwitch() {
         // 检查是否到达当前世界边缘
-        if (player.getX() <= 0 && currentWorld.equals("world_1")) { // 到达左边缘
-            loadWorld("world_west");
+        if (player.getX() <= 0) { // 到达左边缘
+            if (currentWorld.equals("world_1")){
+                loadWorld("world_west");
+            }
+            else if (currentWorld.equals("world_east")){
+                loadWorld("world_1");
+            }
             player.setPosition(790, player.getY()); // 设置玩家传送到新世界右边
-        } else if (player.getX() >= 790 && currentWorld.equals("world_1")) { // 到达右边缘
-            loadWorld("world_east");
+        }
+        else if (player.getX() >= 790) { // 到达右边缘
+            if (currentWorld.equals("world_1")){
+                loadWorld("world_east");
+            }
+            else if (currentWorld.equals("world_west")){
+                loadWorld("world_1");
+            }
             player.setPosition(10, player.getY()); // 设置玩家传送到新世界左边
-        } else if (player.getY() <= 0) { // 到达上边缘
+        }
+        else if (player.getY() <= 0) { // 到达上边缘
             if (currentWorld.equals("world_1")) {
                 loadWorld("world_north");
-                player.setPosition(player.getX(), 590); // 设置玩家传送到新世界底部
             }
-        } else if (player.getY() >= 590) { // 到达下边缘
+            else if (currentWorld.equals("world_south")){
+                loadWorld("world_1");
+            }
+            player.setPosition(player.getX(), 590); // 设置玩家传送到新世界底部
+        }
+        else if (player.getY() >= 590) { // 到达下边缘
             if (currentWorld.equals("world_north")) {
-                loadWorld(previousWorld);
+                loadWorld("world_1");
                 player.setPosition(player.getX(), 10); // 返回到原始世界顶部
-            } else if (currentWorld.equals("world_1")) {
+            }
+            else if (currentWorld.equals("world_1")) {
                 loadWorld("world_south");
                 player.setPosition(player.getX(), 10); // 设置玩家传送到新世界顶部
             }
@@ -138,6 +155,15 @@ public class GamePanel extends JPanel {
         if (backgroundImage != null) {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), null); // 绘制当前世界背景
         }
+
+
+        // 绘制空气墙
+        g.setColor(Color.RED); // 设置颜色为红色
+        for (Rectangle wall : walls) {
+            g.fillRect(wall.x, wall.y, wall.width, wall.height); // 绘制墙体
+        }
+
+
         player.draw(g);
     }
 }
