@@ -200,8 +200,16 @@ public class GamePanel extends JPanel {
     }
 
     private void drawDialogueBox(Graphics g) {
+        // Draw heading
+        g.setColor(new Color(50, 50, 50, 200)); // Dark gray, semi-transparent
+        g.fillRect(50, 370, 700, 30); // Heading panel
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString("Suspicious man", 60, 390);
+
+        // Draw dialogue box
         g.setColor(new Color(0, 0, 0, 200));
-        g.fillRect(50, 400, 700, 150);
+        g.fillRect(50, 400, 700, 150); // Main dialogue box
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 16));
         g.drawString(currentDialogue, 70, 440);
