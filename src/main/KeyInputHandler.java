@@ -7,7 +7,7 @@ import model.Player;
 public class KeyInputHandler implements KeyListener {
     private Player player;
     private static boolean interactPressed = false;
-    private static boolean interactReleased = true; // 用于追踪按键是否已释放
+    private static boolean interactReleased = true; // New flag to track if the key has been released
 
     public KeyInputHandler(Player player) {
         this.player = player;
