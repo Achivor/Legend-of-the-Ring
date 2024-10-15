@@ -43,7 +43,7 @@ public class GamePanel extends JPanel {
         this.setFocusable(true);
         this.requestFocusInWindow();
 
-        // Initialize NPC
+        // Initialize NPC only for the first world
         String[] npcDialogue = {
             "Hello, traveler!",
             "Welcome to our world.",
@@ -165,6 +165,10 @@ public class GamePanel extends JPanel {
     }
 
     private void checkNPCInteraction() {
+        if (!currentWorld.equals("world_1")) {
+            return; // Skip NPC interaction if not in world_1
+        }
+
         long currentTime = System.currentTimeMillis();
         if (npc.isPlayerNear(player) && KeyInputHandler.isInteractPressed() && 
             (currentTime - lastInteractionTime > INTERACTION_COOLDOWN)) {
@@ -184,7 +188,11 @@ public class GamePanel extends JPanel {
         }
 
         player.draw(g);
-        npc.draw(g);
+        
+        // Only draw NPC in world_1
+        if (currentWorld.equals("world_1")) {
+            npc.draw(g);
+        }
 
         if (showDialogue) {
             drawDialogueBox(g);
