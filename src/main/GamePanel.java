@@ -43,11 +43,10 @@ public class GamePanel extends JPanel {
         this.setFocusable(true);
         this.requestFocusInWindow();
 
-        // Initialize NPC only for the first world
+        // Initialize NPC with the new dialogue
         String[] npcDialogue = {
-            "Hello, traveler!",
-            "Welcome to our world.",
-            "Feel free to explore around."
+            "My lord, you finally woke up!",
+            "May we start on our journey?"
         };
         npc = new NPC(400, 300, "src/resources/images/npc.png", npcDialogue);
     }
