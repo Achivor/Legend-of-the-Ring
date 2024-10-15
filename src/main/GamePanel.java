@@ -61,27 +61,27 @@ public class GamePanel extends JPanel {
         walls1.add(new Rectangle(440, 340, 360, 260));
 
         ArrayList<Rectangle> wallsNorth = new ArrayList<>();
-        //wallsNorth.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        wallsNorth.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
         //wallsNorth.add(new Rectangle(0, 590, 800, 10)); // 底部墙
-        //wallsNorth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
-        //wallsNorth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+        wallsNorth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        wallsNorth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsSouth = new ArrayList<>();
         //wallsSouth.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
-        //wallsSouth.add(new Rectangle(0, 590, 800, 10)); // 底部墙
-        //wallsSouth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
-        //wallsSouth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+        wallsSouth.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        wallsSouth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        wallsSouth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsEast = new ArrayList<>();
-        //wallsEast.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
-        //wallsEast.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        wallsEast.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        wallsEast.add(new Rectangle(0, 590, 800, 10)); // 底部墙
         //wallsEast.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
-        //wallsEast.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+        wallsEast.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsWest = new ArrayList<>();
-        //wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
-        //wallsWest.add(new Rectangle(0, 590, 800, 10)); // 底部墙
-        //wallsWest.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        wallsWest.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        wallsWest.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         //wallsWest.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         // 将每个世界的空气墙与其对应的世界关联
@@ -158,10 +158,12 @@ public class GamePanel extends JPanel {
 
 
         // 绘制空气墙
-        g.setColor(Color.RED); // 设置颜色为红色
+        /*g.setColor(Color.RED); // 设置颜色为红色
         for (Rectangle wall : walls) {
             g.fillRect(wall.x, wall.y, wall.width, wall.height); // 绘制墙体
         }
+        */
+
 
 
         player.draw(g);
