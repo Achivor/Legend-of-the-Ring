@@ -5,6 +5,7 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 
@@ -42,6 +43,8 @@ public class Player {
     private final int originalWidth;
     private final int originalHeight;
 
+    private List<Item> inventory; // 新增背包系统
+
     public Player() {
         // 加载行走动画图片
         playerUpImages = new Image[] {
@@ -70,6 +73,8 @@ public class Player {
         // 设置原始图像的宽度和高度（以第一帧为例，假设它们是相同的）
         originalWidth = playerDownImages[0].getWidth(null);
         originalHeight = playerDownImages[0].getHeight(null);
+
+        inventory = new ArrayList<>(); // 初始化背包
     }
 
     private Image loadImage(String path) {
@@ -97,7 +102,7 @@ public class Player {
         this.movingRight = moving;
     }
 
-    public void update(List<Rectangle> walls, Rectangle npcCollisionBox) {
+    public void update(List<Rectangle> walls, Rectangle npcCollisionBox, List<Item> items) {
         int newX = playerX;
         int newY = playerY;
 
@@ -124,7 +129,7 @@ public class Player {
             isMoving = true;
         }
 
-        if (canMove(newX, newY, walls, npcCollisionBox)) {
+        if (canMove(newX, newY, walls, npcCollisionBox, items)) {
             playerX = newX;
             playerY = newY;
         }
@@ -133,21 +138,28 @@ public class Player {
         updateAnimation();
     }
 
-    private boolean canMove(int x, int y, List<Rectangle> walls, Rectangle npcCollisionBox) {
+    private boolean canMove(int x, int y, List<Rectangle> walls, Rectangle npcCollisionBox, List<Item> items) {
         Rectangle playerBounds = new Rectangle(x, y, (int)(originalWidth * scaleFactor), (int)(originalHeight * scaleFactor));
         
-        // Check collision with walls
+        // 检查与空气墙的碰撞
         for (Rectangle wall : walls) {
             if (playerBounds.intersects(wall)) {
                 return false;
             }
         }
-        
-        // Check collision with NPC
+
+        // 检查与NPC的碰撞
         if (npcCollisionBox != null && playerBounds.intersects(npcCollisionBox)) {
             return false;
         }
-        
+
+        // 检查与物品的碰撞
+        for (Item item : items) {
+            if (playerBounds.intersects(item.getCollisionBox())) {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -274,6 +286,12 @@ public class Player {
     }
 
     public Rectangle getCollisionBox() {
+        // 确保碰撞箱的大小和位置与主角图像一致
         return new Rectangle(playerX, playerY, (int)(originalWidth * scaleFactor), (int)(originalHeight * scaleFactor));
+    }
+
+    public void addItem(Item item) {
+        inventory.add(item);
+        System.out.println("Picked up: " + item.getName());
     }
 }

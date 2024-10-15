@@ -6,8 +6,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import model.Item;
 import model.NPC;
 import model.Player;
 
@@ -27,6 +29,9 @@ public class GamePanel extends JPanel {
     private String currentDialogue;
     private long lastInteractionTime;
     private static final long INTERACTION_COOLDOWN = 500; // 500 milliseconds cooldown
+
+    private Item key; // 新增物品
+    private List<Item> items; // 存储所有物品
 
     public GamePanel() {
         player = new Player();
@@ -49,6 +54,11 @@ public class GamePanel extends JPanel {
             "May we start on our journey?"
         };
         npc = new NPC(325, 210, "src/resources/images/npc.png", npcDialogue);
+
+        // 在东部世界添加一个“Key”物品
+        key = new Item(500, 300, "src/resources/images/key.png", "Key");
+        items = new ArrayList<>();
+        items.add(key);
     }
 
     // 初始化多个世界和它们的空气墙
@@ -117,9 +127,17 @@ public class GamePanel extends JPanel {
     }
 
     public void update() {
-        player.update(walls, npc.getCollisionBox());
+        List<Item> currentWorldItems = new ArrayList<>();
+        
+        // 仅在东部世界传递物品
+        if (currentWorld.equals("world_east") && key != null) {
+            currentWorldItems.add(key);
+        }
+
+        player.update(walls, npc.getCollisionBox(), currentWorldItems);
         checkWorldSwitch();
         checkNPCInteraction();
+        checkItemPickup(); // 检查物品拾取
     }
 
     private void checkWorldSwitch() {
@@ -180,6 +198,24 @@ public class GamePanel extends JPanel {
         }
     }
 
+    private void checkItemPickup() {
+        if (currentWorld.equals("world_east") && key != null) {
+            // 输出调试信息
+            System.out.println("Player Collision Box: " + player.getCollisionBox());
+            System.out.println("Key Collision Box: " + key.getCollisionBox());
+            System.out.println("Is Interact Pressed: " + KeyInputHandler.isInteractPressed());
+
+            // 确保主角的碰撞箱与物品的碰撞箱相交
+            if (player.getCollisionBox().intersects(key.getCollisionBox()) && KeyInputHandler.isInteractPressed()) {
+                player.addItem(key); // 将物品添加到玩家背包
+                items.remove(key); // 从物品列表中移除
+                key = null; // 移除物品
+                KeyInputHandler.resetInteractPressed();
+                System.out.println("Key picked up!");
+            }
+        }
+    }
+
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (backgroundImage != null) {
@@ -191,6 +227,11 @@ public class GamePanel extends JPanel {
         // Only draw NPC in world_1
         if (currentWorld.equals("world_1")) {
             npc.draw(g);
+        }
+
+        // 仅在东部世界绘制物品
+        if (currentWorld.equals("world_east") && key != null) {
+            key.draw(g);
         }
 
         if (showDialogue) {
