@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import javax.imageio.ImageIO;
+import java.util.ArrayList;
 
 public class Player {
     private int playerX = 285;  // 主角的初始 X 坐标
@@ -42,6 +43,8 @@ public class Player {
     private final int originalWidth;
     private final int originalHeight;
 
+    private ArrayList<Item> inventory; // 背包
+
     public Player() {
         // 加载行走动画图片
         playerUpImages = new Image[] {
@@ -70,6 +73,8 @@ public class Player {
         // 设置原始图像的宽度和高度（以第一帧为例，假设它们是相同的）
         originalWidth = playerDownImages[0].getWidth(null);
         originalHeight = playerDownImages[0].getHeight(null);
+
+        inventory = new ArrayList<>();
     }
 
     private Image loadImage(String path) {
@@ -275,5 +280,10 @@ public class Player {
 
     public Rectangle getCollisionBox() {
         return new Rectangle(playerX, playerY, (int)(originalWidth * scaleFactor), (int)(originalHeight * scaleFactor));
+    }
+
+    public void addItem(Item item) {
+        inventory.add(item);
+        System.out.println("Picked up: " + item.getName());
     }
 }

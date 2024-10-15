@@ -8,8 +8,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import model.Item;
 import model.NPC;
-import model.Player;
+import model.Player; // 确保导入Item类
 
 public class GamePanel extends JPanel {
     private Player player;
@@ -28,6 +29,9 @@ public class GamePanel extends JPanel {
     private long lastInteractionTime;
     private static final long INTERACTION_COOLDOWN = 500; // 500 milliseconds cooldown
 
+    private ArrayList<Item> items; // 存储当前世界的物品
+    private Item key; // 东部世界的Key
+
     public GamePanel() {
         player = new Player();
         this.setPreferredSize(new Dimension(800, 600));
@@ -35,6 +39,11 @@ public class GamePanel extends JPanel {
 
         // 初始化世界数据
         initWorlds();
+        
+        // 初始化物品
+        items = new ArrayList<>(); // 确保在此处初始化items
+        key = new Item(500, 300, "src/resources/images/key.png", "Key");
+
         loadWorld("world_1"); // 初始世界加载为 "world_1"
 
         // 添加键盘输入监听器
@@ -114,12 +123,19 @@ public class GamePanel extends JPanel {
         if (backgroundImage == null || walls == null) {
             System.out.println("Error: Could not load world data.");
         }
+
+        // 根据世界加载物品
+        items.clear();
+        if ("world_east".equals(world)) {
+            items.add(key);
+        }
     }
 
     public void update() {
-        player.update(walls, npc.getCollisionBox());
+        player.update(walls, npc != null ? npc.getCollisionBox() : null);
         checkWorldSwitch();
         checkNPCInteraction();
+        checkItemPickup();
     }
 
     private void checkWorldSwitch() {
@@ -180,6 +196,18 @@ public class GamePanel extends JPanel {
         }
     }
 
+    private void checkItemPickup() {
+        for (int i = 0; i < items.size(); i++) {
+            Item item = items.get(i);
+            if (player.getCollisionBox().intersects(item.getCollisionBox()) && KeyInputHandler.isInteractPressed()) {
+                player.addItem(item);
+                items.remove(i);
+                KeyInputHandler.resetInteractPressed();
+                break;
+            }
+        }
+    }
+
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (backgroundImage != null) {
@@ -195,6 +223,11 @@ public class GamePanel extends JPanel {
 
         if (showDialogue) {
             drawDialogueBox(g);
+        }
+
+        // 绘制物品
+        for (Item item : items) {
+            item.draw(g);
         }
     }
 
