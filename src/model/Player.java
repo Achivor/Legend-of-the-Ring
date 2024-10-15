@@ -10,7 +10,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 
 public class Player {
-    private int playerX = 280;  // 主角的初始 X 坐标
+    private int playerX = 285;  // 主角的初始 X 坐标
     private int playerY = 280;  // 主角的初始 Y 坐标
     private int speed = 3; // 修改速度值，降低移动速度
 
