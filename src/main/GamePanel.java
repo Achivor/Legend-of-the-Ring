@@ -1,15 +1,15 @@
 package main;
 
-import model.Player;
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import javax.imageio.ImageIO;
-import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.HashMap;
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import model.NPC;
+import model.Player;
 
 public class GamePanel extends JPanel {
     private Player player;
@@ -21,6 +21,12 @@ public class GamePanel extends JPanel {
 
     // 用于追踪玩家可以返回的世界
     private String previousWorld;
+
+    private NPC npc;
+    private boolean showDialogue;
+    private String currentDialogue;
+    private long lastInteractionTime;
+    private static final long INTERACTION_COOLDOWN = 500; // 500 milliseconds cooldown
 
     public GamePanel() {
         player = new Player();
@@ -36,6 +42,14 @@ public class GamePanel extends JPanel {
         this.addKeyListener(keyInputHandler);
         this.setFocusable(true);
         this.requestFocusInWindow();
+
+        // Initialize NPC
+        String[] npcDialogue = {
+            "Hello, traveler!",
+            "Welcome to our world.",
+            "Feel free to explore around."
+        };
+        npc = new NPC(400, 300, "src/resources/images/npc.png", npcDialogue);
     }
 
     // 初始化多个世界和它们的空气墙
@@ -104,9 +118,9 @@ public class GamePanel extends JPanel {
     }
 
     public void update() {
-        player.update(walls); // 更新玩家并进行碰撞检测
-        // 检测主角是否到达边缘，并切换世界
+        player.update(walls, npc.getCollisionBox());
         checkWorldSwitch();
+        checkNPCInteraction();
     }
 
     private void checkWorldSwitch() {
@@ -150,22 +164,38 @@ public class GamePanel extends JPanel {
         }
     }
 
+    private void checkNPCInteraction() {
+        long currentTime = System.currentTimeMillis();
+        if (npc.isPlayerNear(player) && KeyInputHandler.isInteractPressed() && 
+            (currentTime - lastInteractionTime > INTERACTION_COOLDOWN)) {
+            showDialogue = true;
+            currentDialogue = npc.getNextDialogue();
+            lastInteractionTime = currentTime;
+            KeyInputHandler.resetInteractPressed(); // Reset the interact flag
+        } else if (!npc.isPlayerNear(player)) {
+            showDialogue = false;
+        }
+    }
+
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (backgroundImage != null) {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), null); // 绘制当前世界背景
         }
 
-
-        // 绘制空气墙
-        /*g.setColor(Color.RED); // 设置颜色为红色
-        for (Rectangle wall : walls) {
-            g.fillRect(wall.x, wall.y, wall.width, wall.height); // 绘制墙体
-        }
-        */
-
-
-
         player.draw(g);
+        npc.draw(g);
+
+        if (showDialogue) {
+            drawDialogueBox(g);
+        }
+    }
+
+    private void drawDialogueBox(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(50, 400, 700, 150);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        g.drawString(currentDialogue, 70, 440);
     }
 }

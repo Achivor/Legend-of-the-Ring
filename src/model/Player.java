@@ -1,15 +1,15 @@
 package model;
 
-import javax.imageio.ImageIO;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import javax.imageio.ImageIO;
 
 public class Player {
-    private int playerX = 380;  // 主角的初始 X 坐标
+    private int playerX = 280;  // 主角的初始 X 坐标
     private int playerY = 280;  // 主角的初始 Y 坐标
     private int speed = 3; // 修改速度值，降低移动速度
 
@@ -97,21 +97,58 @@ public class Player {
         this.movingRight = moving;
     }
 
-    public void update(List<Rectangle> walls) {
-        // 根据移动状态更新角色位置
+    public void update(List<Rectangle> walls, Rectangle npcCollisionBox) {
+        int newX = playerX;
+        int newY = playerY;
+
+        boolean isMoving = false;
+
         if (movingUp) {
-            moveUp(walls);
+            newY -= speed;
+            currentDirection = "up";
+            isMoving = true;
         }
         if (movingDown) {
-            moveDown(walls);
+            newY += speed;
+            currentDirection = "down";
+            isMoving = true;
         }
         if (movingLeft) {
-            moveLeft(walls);
+            newX -= speed;
+            currentDirection = "left";
+            isMoving = true;
         }
         if (movingRight) {
-            moveRight(walls);
+            newX += speed;
+            currentDirection = "right";
+            isMoving = true;
         }
+
+        if (canMove(newX, newY, walls, npcCollisionBox)) {
+            playerX = newX;
+            playerY = newY;
+        }
+
+        this.isMoving = isMoving;
         updateAnimation();
+    }
+
+    private boolean canMove(int x, int y, List<Rectangle> walls, Rectangle npcCollisionBox) {
+        Rectangle playerBounds = new Rectangle(x, y, (int)(originalWidth * scaleFactor), (int)(originalHeight * scaleFactor));
+        
+        // Check collision with walls
+        for (Rectangle wall : walls) {
+            if (playerBounds.intersects(wall)) {
+                return false;
+            }
+        }
+        
+        // Check collision with NPC
+        if (npcCollisionBox != null && playerBounds.intersects(npcCollisionBox)) {
+            return false;
+        }
+        
+        return true;
     }
 
     public void moveUp(List<Rectangle> walls) {
@@ -153,15 +190,13 @@ public class Player {
     }
 
     public void updateAnimation() {
-        if (movingUp || movingDown || movingLeft || movingRight) {
-            isMoving = true;
+        if (isMoving) {
             animationCounter++;
             if (animationCounter >= animationSpeed) {
                 animationCounter = 0;
                 animationFrame = (animationFrame + 1) % 2;  // 动画帧切换
             }
         } else {
-            isMoving = false;
             animationFrame = 0; // 静止时显示第一帧
         }
     }
@@ -236,5 +271,9 @@ public class Player {
     // 新增方法：获取主角的 Y 坐标
     public int getY() {
         return playerY;
+    }
+
+    public Rectangle getCollisionBox() {
+        return new Rectangle(playerX, playerY, (int)(originalWidth * scaleFactor), (int)(originalHeight * scaleFactor));
     }
 }
