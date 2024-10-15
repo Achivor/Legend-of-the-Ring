@@ -32,7 +32,14 @@ public class NPC {
     }
 
     public void draw(Graphics g) {
-        g.drawImage(image, x, y, null);
+        // 计算新的宽度和高度以保持比例
+        double scaleFactor = 1.5; // 你可以调整这个因子来改变大小
+        int newWidth = (int) (image.getWidth() * scaleFactor);
+        int newHeight = (int) (image.getHeight() * scaleFactor);
+
+        // 使用新的宽度和高度绘制图像
+        g.drawImage(image, x, y, newWidth, newHeight, null);
+
         // Uncomment the following line to see the collision box (for debugging)
         // g.drawRect(collisionBox.x, collisionBox.y, collisionBox.width, collisionBox.height);
     }

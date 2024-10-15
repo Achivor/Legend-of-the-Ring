@@ -49,7 +49,7 @@ public class GamePanel extends JPanel {
             "Welcome to our world.",
             "Feel free to explore around."
         };
-        npc = new NPC(400, 300, "src/resources/images/npc.png", npcDialogue);
+        npc = new NPC(325, 210, "src/resources/images/npc.png", npcDialogue);
     }
 
     // 初始化多个世界和它们的空气墙
