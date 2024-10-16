@@ -5,9 +5,9 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
-import java.util.ArrayList;
 
 public class Player {
     private int playerX = 285;  // 主角的初始 X 坐标
@@ -106,7 +106,7 @@ public class Player {
         int newX = playerX;
         int newY = playerY;
 
-        boolean isMoving = false;
+        isMoving = false;
 
         if (movingUp) {
             newY -= speed;
@@ -134,25 +134,22 @@ public class Player {
             playerY = newY;
         }
 
-        this.isMoving = isMoving;
         updateAnimation();
     }
 
     private boolean canMove(int x, int y, List<Rectangle> walls, Rectangle npcCollisionBox) {
         Rectangle playerBounds = new Rectangle(x, y, (int)(originalWidth * scaleFactor), (int)(originalHeight * scaleFactor));
         
-        // Check collision with walls
         for (Rectangle wall : walls) {
             if (playerBounds.intersects(wall)) {
                 return false;
             }
         }
-        
-        // Check collision with NPC
+
         if (npcCollisionBox != null && playerBounds.intersects(npcCollisionBox)) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -285,5 +282,14 @@ public class Player {
     public void addItem(Item item) {
         inventory.add(item);
         System.out.println("Picked up: " + item.getName());
+    }
+
+    public boolean hasItem(String itemName) {
+        for (Item item : inventory) {
+            if (item.getName().equals(itemName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -32,6 +32,17 @@ public class GamePanel extends JPanel {
     private ArrayList<Item> items; // 存储当前世界的物品
     private Item key; // 东部世界的Key
 
+    private Rectangle specialWall;
+    private boolean isSpecialWallActive = true;
+    private boolean showSpecialWallMessage = false;
+    private String specialWallMessage = "";
+    private Timer messageTimer;
+    private static final int MESSAGE_DURATION = 2000; // 消息显示时间（毫秒）
+
+    private boolean showKeyMessage = false; // 控制Key物品的消息显示
+    private String keyMessage = ""; // Key物品的消息内容
+    private Timer keyMessageTimer; // 控制Key物品消息的计时器
+
     public GamePanel() {
         player = new Player();
         this.setPreferredSize(new Dimension(800, 600));
@@ -58,6 +69,22 @@ public class GamePanel extends JPanel {
             "May we start on our journey?"
         };
         npc = new NPC(325, 210, "src/resources/images/npc.png", npcDialogue);
+
+        specialWall = new Rectangle(360, 0, 80, 10); // 特殊空气墙的位置
+
+        messageTimer = new Timer(MESSAGE_DURATION, e -> {
+            showSpecialWallMessage = false;
+            ((Timer)e.getSource()).stop();
+            repaint();
+        });
+        messageTimer.setRepeats(false);
+
+        keyMessageTimer = new Timer(MESSAGE_DURATION, e -> {
+            showKeyMessage = false;
+            ((Timer)e.getSource()).stop();
+            repaint();
+        });
+        keyMessageTimer.setRepeats(false);
     }
 
     // 初始化多个世界和它们的空气墙
@@ -132,10 +159,17 @@ public class GamePanel extends JPanel {
     }
 
     public void update() {
-        player.update(walls, npc != null ? npc.getCollisionBox() : null);
+        ArrayList<Rectangle> currentWalls = new ArrayList<>(walls);
+        if (currentWorld.equals("world_1") && isSpecialWallActive) {
+            currentWalls.add(specialWall);
+        }
+        player.update(currentWalls, npc != null ? npc.getCollisionBox() : null);
         checkWorldSwitch();
         checkNPCInteraction();
         checkItemPickup();
+        checkSpecialWallInteraction();
+        checkKeyInteraction(); // 检查Key物品的交互
+        repaint(); // 确保每次更新后重绘面板
     }
 
     private void checkWorldSwitch() {
@@ -208,6 +242,56 @@ public class GamePanel extends JPanel {
         }
     }
 
+    private void checkSpecialWallInteraction() {
+        if (!currentWorld.equals("world_1") || !isSpecialWallActive) {
+            return;
+        }
+
+        Rectangle expandedWall = new Rectangle(specialWall.x - 20, specialWall.y - 20, 
+                                               specialWall.width + 40, specialWall.height + 40);
+        
+        if (expandedWall.intersects(player.getCollisionBox())) {
+            if (KeyInputHandler.isInteractPressed()) {
+                if (player.hasItem("Key")) {
+                    isSpecialWallActive = false;
+                    showMessage("You have opened the passage!");
+                } else {
+                    showMessage("You need a key!");
+                }
+                KeyInputHandler.resetInteractPressed();
+            } else if (!showSpecialWallMessage) {
+                showMessage("Press E to use the key");
+            }
+        } else {
+            showSpecialWallMessage = false;
+        }
+    }
+
+    private void showMessage(String message) {
+        specialWallMessage = message;
+        showSpecialWallMessage = true;
+        messageTimer.restart();
+    }
+
+    private void checkKeyInteraction() {
+        if (items.contains(key) && player.getCollisionBox().intersects(key.getCollisionBox())) {
+            if (!showKeyMessage) {
+                keyMessage = "Press E to pick up the key.";
+                showKeyMessage = true;
+                keyMessageTimer.restart(); // 重启计时器
+            }
+
+            if (KeyInputHandler.isInteractPressed()) {
+                player.addItem(key); // 拾取Key物品
+                items.remove(key); // 从物品列表中移除Key
+                showKeyMessage = false; // 隐藏消息
+                KeyInputHandler.resetInteractPressed();
+            }
+        } else {
+            showKeyMessage = false; // 如果不在附近，隐藏消息
+        }
+    }
+
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (backgroundImage != null) {
@@ -229,6 +313,21 @@ public class GamePanel extends JPanel {
         for (Item item : items) {
             item.draw(g);
         }
+
+        // 绘制普通空气墙
+        if (currentWorld.equals("world_1") && isSpecialWallActive) {
+            // 不绘制特殊空气墙
+        }
+
+        // 绘制特殊墙消息
+        if (showSpecialWallMessage) {
+            drawSpecialWallMessage(g);
+        }
+
+        // 绘制Key物品消息
+        if (showKeyMessage) {
+            drawKeyMessage(g);
+        }
     }
 
     private void drawDialogueBox(Graphics g) {
@@ -245,5 +344,21 @@ public class GamePanel extends JPanel {
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 16));
         g.drawString(currentDialogue, 70, 440);
+    }
+
+    private void drawSpecialWallMessage(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(50, 500, 700, 50);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        g.drawString(specialWallMessage, 70, 530);
+    }
+
+    private void drawKeyMessage(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(50, 500, 700, 50);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        g.drawString(keyMessage, 70, 530);
     }
 }
