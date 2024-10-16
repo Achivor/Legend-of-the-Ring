@@ -43,6 +43,10 @@ public class GamePanel extends JPanel {
     private String keyMessage = ""; // Key物品的消息内容
     private Timer keyMessageTimer; // 控制Key物品消息的计时器
 
+    private static final String HIDDEN_WORLD = "hidden_world"; // 新的隐藏世界标识
+
+    private boolean isKeyCollected = false; // 跟踪Key物品是否已被拾取
+
     public GamePanel() {
         player = new Player();
         this.setPreferredSize(new Dimension(800, 600));
@@ -53,7 +57,7 @@ public class GamePanel extends JPanel {
         
         // 初始化物品
         items = new ArrayList<>(); // 确保在此处初始化items
-        key = new Item(500, 300, "src/resources/images/key.png", "Key");
+        key = new Item(100, 300, "src/resources/images/key.png", "Key");
 
         loadWorld("world_1"); // 初始世界加载为 "world_1"
 
@@ -98,6 +102,7 @@ public class GamePanel extends JPanel {
             worldBackgrounds.put("world_south", ImageIO.read(new File("src/resources/images/world_south.png")));
             worldBackgrounds.put("world_east", ImageIO.read(new File("src/resources/images/world_east.png")));
             worldBackgrounds.put("world_west", ImageIO.read(new File("src/resources/images/world_west.png")));
+            worldBackgrounds.put(HIDDEN_WORLD, ImageIO.read(new File("src/resources/images/hidden_world.png"))); // 隐藏世界的背景图
         } catch (IOException e) {
             System.out.println("Error: Could not load world backgrounds.");
         }
@@ -124,8 +129,6 @@ public class GamePanel extends JPanel {
         ArrayList<Rectangle> wallsEast = new ArrayList<>();
         wallsEast.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
         wallsEast.add(new Rectangle(0, 590, 800, 10)); // 底部墙
-        //wallsEast.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
-        wallsEast.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsWest = new ArrayList<>();
         wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
@@ -133,12 +136,19 @@ public class GamePanel extends JPanel {
         wallsWest.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         //wallsWest.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
+        ArrayList<Rectangle> wallsHidden = new ArrayList<>();
+        wallsHidden.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        wallsHidden.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        //wallsHidden.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        wallsHidden.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+
         // 将每个世界的空气墙与其对应的世界关联
         worldWalls.put("world_1", walls1);
         worldWalls.put("world_north", wallsNorth);
         worldWalls.put("world_south", wallsSouth);
         worldWalls.put("world_east", wallsEast);
         worldWalls.put("world_west", wallsWest);
+        worldWalls.put(HIDDEN_WORLD, wallsHidden); // 添加隐藏世界的空气墙
     }
 
     // 加载指定的世界
@@ -153,9 +163,10 @@ public class GamePanel extends JPanel {
 
         // 根据世界加载物品
         items.clear();
-        if ("world_east".equals(world)) {
-            items.add(key);
+        if ("world_east".equals(world) && !player.hasItem("Key")) {
+            items.add(key); // 仅在Key未被拾取时添加
         }
+        // 隐藏世界不需要额外物品
     }
 
     public void update() {
@@ -181,13 +192,17 @@ public class GamePanel extends JPanel {
             else if (currentWorld.equals("world_east")){
                 loadWorld("world_1");
             }
+            else if (currentWorld.equals(HIDDEN_WORLD)){
+                loadWorld("world_east");
+            }
             player.setPosition(790, player.getY()); // 设置玩家传送到新世界右边
         }
         else if (player.getX() >= 790) { // 到达右边缘
-            if (currentWorld.equals("world_1")){
-                loadWorld("world_east");
-            }
-            else if (currentWorld.equals("world_west")){
+            if (currentWorld.equals("world_east")) {
+                loadWorld(HIDDEN_WORLD); // 进入隐藏世界
+            } else if (currentWorld.equals("world_1")) {
+                loadWorld("world_east"); 
+            } else if (currentWorld.equals("world_west")) {
                 loadWorld("world_1");
             }
             player.setPosition(10, player.getY()); // 设置玩家传送到新世界左边
@@ -298,25 +313,20 @@ public class GamePanel extends JPanel {
             g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), null); // 绘制当前世界背景
         }
 
-        player.draw(g);
-        
-        // Only draw NPC in world_1
-        if (currentWorld.equals("world_1")) {
-            npc.draw(g);
-        }
-
-        if (showDialogue) {
-            drawDialogueBox(g);
-        }
-
         // 绘制物品
         for (Item item : items) {
             item.draw(g);
         }
 
-        // 绘制普通空气墙
-        if (currentWorld.equals("world_1") && isSpecialWallActive) {
-            // 不绘制特殊空气墙
+        // Only draw NPC in world_1
+        if (currentWorld.equals("world_1")) {
+            npc.draw(g);
+        }
+
+        player.draw(g); // 确保主角在物品和NPC之上绘制
+
+        if (showDialogue) {
+            drawDialogueBox(g);
         }
 
         // 绘制特殊墙消息

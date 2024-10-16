@@ -45,6 +45,8 @@ public class Player {
 
     private ArrayList<Item> inventory; // 背包
 
+    private boolean hasKey = false; // 跟踪玩家是否拥有Key
+
     public Player() {
         // 加载行走动画图片
         playerUpImages = new Image[] {
@@ -280,11 +282,17 @@ public class Player {
     }
 
     public void addItem(Item item) {
+        if (item.getName().equals("Key")) {
+            hasKey = true; // 拾取Key时更新状态
+        }
         inventory.add(item);
         System.out.println("Picked up: " + item.getName());
     }
 
     public boolean hasItem(String itemName) {
+        if (itemName.equals("Key")) {
+            return hasKey; // 检查是否拥有Key
+        }
         for (Item item : inventory) {
             if (item.getName().equals(itemName)) {
                 return true;
