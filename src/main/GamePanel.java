@@ -31,6 +31,10 @@ public class GamePanel extends JPanel {
 
     private ArrayList<Item> items; // 存储当前世界的物品
     private Item key; // 东部世界的Key
+    private Item axe; // 隐藏世界的Axe
+    private boolean showAxeMessage = false; // 控制Axe物品的消息显示
+    private String axeMessage = ""; // Axe物品的消息内容
+    private Timer axeMessageTimer; // 控制Axe物品消息的计时器
 
     private Rectangle specialWall;
     private boolean isSpecialWallActive = true;
@@ -47,6 +51,8 @@ public class GamePanel extends JPanel {
 
     private boolean isKeyCollected = false; // 跟踪Key物品是否已被拾取
 
+    private boolean showInventory = false;
+
     public GamePanel() {
         player = new Player();
         this.setPreferredSize(new Dimension(800, 600));
@@ -57,7 +63,8 @@ public class GamePanel extends JPanel {
         
         // 初始化物品
         items = new ArrayList<>(); // 确保在此处初始化items
-        key = new Item(100, 300, "src/resources/images/key.png", "Key");
+        key = new Item(500, 300, "src/resources/images/key.png", "Key", "A mysterious key that might unlock something important.");
+        axe = new Item(400, 200, "src/resources/images/axe.png", "Axe", "A sturdy axe that could be useful for cutting things."); // 设置Axe的位置和图片
 
         loadWorld("world_1"); // 初始世界加载为 "world_1"
 
@@ -89,6 +96,13 @@ public class GamePanel extends JPanel {
             repaint();
         });
         keyMessageTimer.setRepeats(false);
+
+        axeMessageTimer = new Timer(MESSAGE_DURATION, e -> {
+            showAxeMessage = false;
+            ((Timer)e.getSource()).stop();
+            repaint();
+        });
+        axeMessageTimer.setRepeats(false);
     }
 
     // 初始化多个世界和它们的空气墙
@@ -137,7 +151,7 @@ public class GamePanel extends JPanel {
         //wallsWest.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsHidden = new ArrayList<>();
-        wallsHidden.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        //wallsHidden.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
         wallsHidden.add(new Rectangle(0, 590, 800, 10)); // 底部墙
         //wallsHidden.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         wallsHidden.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
@@ -164,9 +178,10 @@ public class GamePanel extends JPanel {
         // 根据世界加载物品
         items.clear();
         if ("world_east".equals(world) && !player.hasItem("Key")) {
-            items.add(key); // 仅在Key未被拾取时添加
+            items.add(key);
+        } else if (HIDDEN_WORLD.equals(world) && !player.hasItem("Axe")) {
+            items.add(axe);
         }
-        // 隐藏世界不需要额外物品
     }
 
     public void update() {
@@ -174,12 +189,18 @@ public class GamePanel extends JPanel {
         if (currentWorld.equals("world_1") && isSpecialWallActive) {
             currentWalls.add(specialWall);
         }
-        player.update(currentWalls, npc != null ? npc.getCollisionBox() : null);
+
+        if (currentWorld.equals("world_1") && npc != null) {
+            player.update(currentWalls, npc.getCollisionBox());
+        } else {
+            player.update(currentWalls, null);
+        }
         checkWorldSwitch();
         checkNPCInteraction();
-        checkItemPickup();
+        checkKeyInteraction();
+        checkAxeInteraction();
         checkSpecialWallInteraction();
-        checkKeyInteraction(); // 检查Key物品的交互
+        checkInventoryDisplay();
         repaint(); // 确保每次更新后重绘面板
     }
 
@@ -229,19 +250,19 @@ public class GamePanel extends JPanel {
     }
 
     private void checkNPCInteraction() {
-        if (!currentWorld.equals("world_1")) {
-            return; // Skip NPC interaction if not in world_1
-        }
-
-        long currentTime = System.currentTimeMillis();
-        if (npc.isPlayerNear(player) && KeyInputHandler.isInteractPressed() && 
-            (currentTime - lastInteractionTime > INTERACTION_COOLDOWN)) {
-            showDialogue = true;
-            currentDialogue = npc.getNextDialogue();
-            lastInteractionTime = currentTime;
-            KeyInputHandler.resetInteractPressed(); // Reset the interact flag
-        } else if (!npc.isPlayerNear(player)) {
-            showDialogue = false;
+        if (currentWorld.equals("world_1") && npc != null) { // 确保npc不为null且在始世界
+            long currentTime = System.currentTimeMillis();
+            if (npc.isPlayerNear(player) && KeyInputHandler.isInteractPressed() && 
+                (currentTime - lastInteractionTime > INTERACTION_COOLDOWN)) {
+                showDialogue = true;
+                currentDialogue = npc.getNextDialogue();
+                lastInteractionTime = currentTime;
+                KeyInputHandler.resetInteractPressed(); // Reset the interact flag
+            } else if (!npc.isPlayerNear(player)) {
+                showDialogue = false;
+            }
+        } else {
+            showDialogue = false; // 如果不在初始世界，确保对话框不显示
         }
     }
 
@@ -307,6 +328,29 @@ public class GamePanel extends JPanel {
         }
     }
 
+    private void checkAxeInteraction() {
+        if (items.contains(axe) && player.getCollisionBox().intersects(axe.getCollisionBox())) {
+            if (!showAxeMessage) {
+                axeMessage = "Press E to pick up the axe.";
+                showAxeMessage = true;
+                axeMessageTimer.restart();
+            }
+
+            if (KeyInputHandler.isInteractPressed()) {
+                player.addItem(axe);
+                items.remove(axe);
+                showAxeMessage = false;
+                KeyInputHandler.resetInteractPressed();
+            }
+        } else {
+            showAxeMessage = false;
+        }
+    }
+
+    private void checkInventoryDisplay() {
+        showInventory = KeyInputHandler.isInventoryPressed();
+    }
+
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (backgroundImage != null) {
@@ -337,6 +381,15 @@ public class GamePanel extends JPanel {
         // 绘制Key物品消息
         if (showKeyMessage) {
             drawKeyMessage(g);
+        }
+
+        // 绘制Axe物品消息
+        if (showAxeMessage) {
+            drawAxeMessage(g);
+        }
+
+        if (showInventory) {
+            drawInventory(g);
         }
     }
 
@@ -370,5 +423,39 @@ public class GamePanel extends JPanel {
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 16));
         g.drawString(keyMessage, 70, 530);
+    }
+
+    private void drawAxeMessage(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(50, 500, 700, 50);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        g.drawString(axeMessage, 70, 530);
+    }
+
+    private void drawInventory(Graphics g) {
+        // 设置背景
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(50, 50, 700, 500);
+
+        // 设置标题
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 24));
+        g.drawString("Inventory", 70, 90);
+
+        // 列出物品
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        ArrayList<Item> inventory = player.getInventory();
+        for (int i = 0; i < inventory.size(); i++) {
+            Item item = inventory.get(i);
+            
+            // 绘制物品贴图
+            BufferedImage itemImage = item.getImage();
+            int imageSize = 30; // 设置贴图显示大小
+            g.drawImage(itemImage, 70, 110 + i * 40, imageSize, imageSize, null);
+            
+            // 绘制物品名称和描述
+            g.drawString(item.getName() + ": " + item.getDescription(), 110, 130 + i * 40);
+        }
     }
 }

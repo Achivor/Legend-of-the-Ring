@@ -7,6 +7,7 @@ import model.Player;
 public class KeyInputHandler implements KeyListener {
     private Player player;
     private static boolean interactPressed = false;
+    private static boolean inventoryPressed = false;
 
     public KeyInputHandler(Player player) {
         this.player = player;
@@ -31,6 +32,9 @@ public class KeyInputHandler implements KeyListener {
         if (key == KeyEvent.VK_E) {
             interactPressed = true;
         }
+        if (key == KeyEvent.VK_R) {
+            inventoryPressed = true;
+        }
     }
 
     @Override
@@ -52,6 +56,9 @@ public class KeyInputHandler implements KeyListener {
         if (key == KeyEvent.VK_E) {
             interactPressed = false;
         }
+        if (key == KeyEvent.VK_R) {
+            inventoryPressed = false;
+        }
     }
 
     @Override
@@ -65,5 +72,9 @@ public class KeyInputHandler implements KeyListener {
 
     public static void resetInteractPressed() {
         interactPressed = false;
+    }
+
+    public static boolean isInventoryPressed() {
+        return inventoryPressed;
     }
 }

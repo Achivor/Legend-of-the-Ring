@@ -46,6 +46,7 @@ public class Player {
     private ArrayList<Item> inventory; // 背包
 
     private boolean hasKey = false; // 跟踪玩家是否拥有Key
+    private boolean hasAxe = false;
 
     public Player() {
         // 加载行走动画图片
@@ -283,7 +284,9 @@ public class Player {
 
     public void addItem(Item item) {
         if (item.getName().equals("Key")) {
-            hasKey = true; // 拾取Key时更新状态
+            hasKey = true;
+        } else if (item.getName().equals("Axe")) {
+            hasAxe = true;
         }
         inventory.add(item);
         System.out.println("Picked up: " + item.getName());
@@ -291,7 +294,9 @@ public class Player {
 
     public boolean hasItem(String itemName) {
         if (itemName.equals("Key")) {
-            return hasKey; // 检查是否拥有Key
+            return hasKey;
+        } else if (itemName.equals("Axe")) {
+            return hasAxe;
         }
         for (Item item : inventory) {
             if (item.getName().equals(itemName)) {
@@ -299,5 +304,9 @@ public class Player {
             }
         }
         return false;
+    }
+
+    public ArrayList<Item> getInventory() {
+        return inventory;
     }
 }

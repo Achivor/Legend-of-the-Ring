@@ -11,11 +11,13 @@ public class Item {
     private BufferedImage image;
     private String name;
     private Rectangle collisionBox;
+    private String description;
 
-    public Item(int x, int y, String imagePath, String name) {
+    public Item(int x, int y, String imagePath, String name, String description) {
         this.x = x;
         this.y = y;
         this.name = name;
+        this.description = description;
 
         try {
             this.image = ImageIO.read(new File(imagePath));
@@ -36,5 +38,13 @@ public class Item {
 
     public String getName() {
         return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public BufferedImage getImage() {
+        return image;
     }
 }
