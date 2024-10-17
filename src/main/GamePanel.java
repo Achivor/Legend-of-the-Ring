@@ -28,6 +28,10 @@ public class GamePanel extends JPanel {
     private long lastInteractionTime;
     private static final long INTERACTION_COOLDOWN = 500; // 500 milliseconds cooldown
 
+    private String[] dialogueSequence;
+    private String[] dialogueSpeakers;
+    private int currentDialogueIndex;
+
     public GamePanel() {
         player = new Player();
         this.setPreferredSize(new Dimension(800, 600));
@@ -49,6 +53,35 @@ public class GamePanel extends JPanel {
             "May we start on our journey?"
         };
         npc = new NPC(325, 210, "src/resources/images/npc.png", npcDialogue);
+
+        // Initialize dialogue sequence with speakers
+        dialogueSequence = new String[]{
+            "My lord, you finally woke up!",
+            "May we start on our journey?",
+            "The man was tied tightly by ropes, deep red marks reflecting on his skin. The person who did this must be hating him so much.",
+            "(Shakes your head) I do not know you.",
+            "(Stunned) You lost your memory? How is that possible? Check your pocket and put on that ring right now!",
+            "You feel uncomfortable about the attitude of the man in front of you, is he your friend?",
+            "I would not follow your command.",
+            "(laughs viciously) Haha, you are still our honorable KING THORIAN. Fair, I am not in the position to tell you what to do. By the way, my name is Veldric, Veldric Shawdowbane. That is a fake name of course, you just need to know that I am your loyal magician!",
+            "Now that you have lost your memory, I will explain a bit. \nYou were the hero of humankind, (Snorts) the most respected man in human history, as you defeated the most sinister demon in the world. After the battle, you fell in love with an elvish princess whose beauty is as radiant as the most precious pearl — I'm getting jealous (says contemptuously). \nHowever, she disappeared the day before your wedding, with your opponent. You chased them and went on to fight.",
+            "You really dislike him now. You decide to leave immediately after he reveals all the useful information.",
+            "Did i lose?",
+            "(Smirks) Of course not. With that ring you would never encounter failure and Vivian loves you, she would never make you hurt.",
+            "The familiar name invokes a sense of nostalgia and warmth in your heart. Even now, you still remember her lovely voice and noble heart.",
+            "You should not mention her name like that.",
+            "This is me, you highness. I am even more surprised now, you remember her even when you forget your name. Then it should be easy for me to explain what we are supposed to do. Your opponent trapped you here, a special place sheltered with magic. From my observation, there are three puzzles in this area. I am not very sure where it would lead us to after solving the puzzles, but unfortunately, this is our only clue. Shall we start now?",
+            "You nod, then walk away.",
+            "Can you not see I am also trapped here?! Come back and release me!"
+        };
+
+        dialogueSpeakers = new String[]{
+            "Suspicious man", "Suspicious man", "Narrative", "You", "Suspicious man",
+            "Narrative", "You", "Veldric", "Veldric", "Narrative", "You", "Veldric",
+            "Narrative", "You", "Veldric", "Narrative", "Veldric"
+        };
+
+        currentDialogueIndex = 0;
     }
 
     // 初始化多个世界和它们的空气墙
@@ -172,7 +205,8 @@ public class GamePanel extends JPanel {
         if (npc.isPlayerNear(player) && KeyInputHandler.isInteractPressed() && 
             (currentTime - lastInteractionTime > INTERACTION_COOLDOWN)) {
             showDialogue = true;
-            currentDialogue = npc.getNextDialogue();
+            currentDialogue = dialogueSequence[currentDialogueIndex];
+            currentDialogueIndex = (currentDialogueIndex + 1) % dialogueSequence.length;
             lastInteractionTime = currentTime;
             KeyInputHandler.resetInteractPressed(); // Reset the interact flag
         } else if (!npc.isPlayerNear(player)) {
@@ -204,13 +238,33 @@ public class GamePanel extends JPanel {
         g.fillRect(50, 370, 700, 30); // Heading panel
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 16));
-        g.drawString("Suspicious man", 60, 390);
+        
+        String speaker = dialogueSpeakers[currentDialogueIndex];
+        g.drawString(speaker, 60, 390);
 
         // Draw dialogue box
         g.setColor(new Color(0, 0, 0, 200));
         g.fillRect(50, 400, 700, 150); // Main dialogue box
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 16));
-        g.drawString(currentDialogue, 70, 440);
+        drawWrappedText(g, dialogueSequence[currentDialogueIndex], 70, 440, 660);
+    }
+
+    private void drawWrappedText(Graphics g, String text, int x, int y, int maxWidth) {
+        FontMetrics fm = g.getFontMetrics();
+        String[] words = text.split("\\s+");
+        String line = "";
+        for (String word : words) {
+            if (fm.stringWidth(line + word) < maxWidth) {
+                line += word + " ";
+            } else {
+                g.drawString(line, x, y);
+                y += fm.getHeight();
+                line = word + " ";
+            }
+        }
+        if (line.trim().length() > 0) {
+            g.drawString(line, x, y);
+        }
     }
 }
