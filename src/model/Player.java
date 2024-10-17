@@ -5,7 +5,6 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 
@@ -43,11 +42,6 @@ public class Player {
     private final int originalWidth;
     private final int originalHeight;
 
-    private ArrayList<Item> inventory; // 背包
-
-    private boolean hasKey = false; // 跟踪玩家是否拥有Key
-    private boolean hasAxe = false;
-
     public Player() {
         // 加载行走动画图片
         playerUpImages = new Image[] {
@@ -76,8 +70,6 @@ public class Player {
         // 设置原始图像的宽度和高度（以第一帧为例，假设它们是相同的）
         originalWidth = playerDownImages[0].getWidth(null);
         originalHeight = playerDownImages[0].getHeight(null);
-
-        inventory = new ArrayList<>();
     }
 
     private Image loadImage(String path) {
@@ -109,7 +101,7 @@ public class Player {
         int newX = playerX;
         int newY = playerY;
 
-        isMoving = false;
+        boolean isMoving = false;
 
         if (movingUp) {
             newY -= speed;
@@ -137,22 +129,25 @@ public class Player {
             playerY = newY;
         }
 
+        this.isMoving = isMoving;
         updateAnimation();
     }
 
     private boolean canMove(int x, int y, List<Rectangle> walls, Rectangle npcCollisionBox) {
         Rectangle playerBounds = new Rectangle(x, y, (int)(originalWidth * scaleFactor), (int)(originalHeight * scaleFactor));
         
+        // Check collision with walls
         for (Rectangle wall : walls) {
             if (playerBounds.intersects(wall)) {
                 return false;
             }
         }
-
+        
+        // Check collision with NPC
         if (npcCollisionBox != null && playerBounds.intersects(npcCollisionBox)) {
             return false;
         }
-
+        
         return true;
     }
 
@@ -280,33 +275,5 @@ public class Player {
 
     public Rectangle getCollisionBox() {
         return new Rectangle(playerX, playerY, (int)(originalWidth * scaleFactor), (int)(originalHeight * scaleFactor));
-    }
-
-    public void addItem(Item item) {
-        if (item.getName().equals("Key")) {
-            hasKey = true;
-        } else if (item.getName().equals("Axe")) {
-            hasAxe = true;
-        }
-        inventory.add(item);
-        System.out.println("Picked up: " + item.getName());
-    }
-
-    public boolean hasItem(String itemName) {
-        if (itemName.equals("Key")) {
-            return hasKey;
-        } else if (itemName.equals("Axe")) {
-            return hasAxe;
-        }
-        for (Item item : inventory) {
-            if (item.getName().equals(itemName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public ArrayList<Item> getInventory() {
-        return inventory;
     }
 }
