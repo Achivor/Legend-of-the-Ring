@@ -7,7 +7,7 @@ import model.Player;
 public class KeyInputHandler implements KeyListener {
     private Player player;
     private static boolean interactPressed = false;
-    private static boolean interactReleased = true; // New flag to track if the key has been released
+    private static boolean inventoryPressed = false;
 
     public KeyInputHandler(Player player) {
         this.player = player;
@@ -29,9 +29,11 @@ public class KeyInputHandler implements KeyListener {
         if (key == KeyEvent.VK_D) {
             player.setMovingRight(true);
         }
-        if (key == KeyEvent.VK_E && interactReleased) {
+        if (key == KeyEvent.VK_E) {
             interactPressed = true;
-            interactReleased = false;
+        }
+        if (key == KeyEvent.VK_R) {
+            inventoryPressed = true;
         }
     }
 
@@ -53,7 +55,9 @@ public class KeyInputHandler implements KeyListener {
         }
         if (key == KeyEvent.VK_E) {
             interactPressed = false;
-            interactReleased = true;
+        }
+        if (key == KeyEvent.VK_R) {
+            inventoryPressed = false;
         }
     }
 
@@ -68,5 +72,9 @@ public class KeyInputHandler implements KeyListener {
 
     public static void resetInteractPressed() {
         interactPressed = false;
+    }
+
+    public static boolean isInventoryPressed() {
+        return inventoryPressed;
     }
 }

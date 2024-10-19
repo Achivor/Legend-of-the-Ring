@@ -4,19 +4,20 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import javax.imageio.ImageIO;
 
 public class NPC {
     private int x, y;
     private BufferedImage image;
     private Rectangle collisionBox;
-    private String[] dialogue;
+    private ArrayList<String[]> dialogues; // 每个元素是一个包含标题和内容的数组
     private int currentDialogueIndex;
 
-    public NPC(int x, int y, String imagePath, String[] dialogue) {
+    public NPC(int x, int y, String imagePath, ArrayList<String[]> dialogues) {
         this.x = x;
         this.y = y;
-        this.dialogue = dialogue;
+        this.dialogues = dialogues;
         this.currentDialogueIndex = 0;
 
         try {
@@ -56,9 +57,14 @@ public class NPC {
         return expandedBox.intersects(player.getCollisionBox());
     }
 
-    public String getNextDialogue() {
-        String currentDialogue = dialogue[currentDialogueIndex];
-        currentDialogueIndex = (currentDialogueIndex + 1) % dialogue.length;
-        return currentDialogue;
+    public String[] getNextDialogue(int index) {
+        if (index < dialogues.size()) {
+            return dialogues.get(index);
+        }
+        return null;
+    }
+
+    public int getDialogueCount() {
+        return dialogues.size();
     }
 }
