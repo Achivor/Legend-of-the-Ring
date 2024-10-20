@@ -13,36 +13,35 @@ public class NPC {
     private Rectangle collisionBox;
     private ArrayList<String[]> dialogues; // 每个元素是一个包含标题和内容的数组
     private int currentDialogueIndex;
+    private double scale;
 
+    // 添加一个默认的构造函数，使用默认缩放比例 1.0
     public NPC(int x, int y, String imagePath, ArrayList<String[]> dialogues) {
+        this(x, y, imagePath, dialogues, 1.5);
+    }
+
+    // 保留带缩放参数的构造函数
+    public NPC(int x, int y, String imagePath, ArrayList<String[]> dialogues, double scale) {
         this.x = x;
         this.y = y;
         this.dialogues = dialogues;
-        this.currentDialogueIndex = 0;
-
+        this.scale = scale;
         try {
-            this.image = ImageIO.read(new File(imagePath));
+            BufferedImage originalImage = ImageIO.read(new File(imagePath));
+            int newWidth = (int) (originalImage.getWidth() * scale);
+            int newHeight = (int) (originalImage.getHeight() * scale);
+            image = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = image.createGraphics();
+            g.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
+            g.dispose();
         } catch (IOException e) {
-            System.out.println("Error: Could not load NPC image.");
+            e.printStackTrace();
         }
-
-        // Create a slightly smaller collision box than the image
-        int collisionBoxWidth = image.getWidth() - 10;
-        int collisionBoxHeight = image.getHeight() - 10;
-        this.collisionBox = new Rectangle(x + 5, y + 5, collisionBoxWidth, collisionBoxHeight);
+        collisionBox = new Rectangle(x, y, image.getWidth(), image.getHeight());
     }
 
     public void draw(Graphics g) {
-        // 计算新的宽度和高度以保持比例
-        double scaleFactor = 1.5; // 你可以调整这个因子来改变大小
-        int newWidth = (int) (image.getWidth() * scaleFactor);
-        int newHeight = (int) (image.getHeight() * scaleFactor);
-
-        // 使用新的宽度和高度绘制图像
-        g.drawImage(image, x, y, newWidth, newHeight, null);
-
-        // Uncomment the following line to see the collision box (for debugging)
-        // g.drawRect(collisionBox.x, collisionBox.y, collisionBox.width, collisionBox.height);
+        g.drawImage(image, x, y, null);
     }
 
     public Rectangle getCollisionBox() {

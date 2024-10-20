@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import model.Item;
@@ -24,9 +25,13 @@ public class GamePanel extends JPanel {
     private String previousWorld;
 
     private NPC npc;
+    private List<NPC> northElves;
     private boolean showDialogue;
     private String[] currentDialogue;
     private int currentDialogueIndex;
+    private NPC currentInteractingNPC;
+    private boolean showInventory = false;
+
     private long lastInteractionTime;
     private static final long INTERACTION_COOLDOWN = 500; // 500 milliseconds cooldown
 
@@ -53,7 +58,18 @@ public class GamePanel extends JPanel {
 
     private boolean isKeyCollected = false; // 跟踪Key物品是否已被拾取
 
-    private boolean showInventory = false;
+    private static final double ELF_SCALE = 0.8; // 精灵贴图缩放比例，可以根据需要调整
+
+    private NPC signalNPC; // 新增的指示牌NPC
+    private boolean showSignalDialogue = false;
+
+    private NPC closedBox;
+    private NPC openedBox;
+    private boolean isBoxOpened = false;
+    private Item shabbyRing;
+    private boolean showBoxMessage = false;
+    private String boxMessage = "";
+    private Timer boxMessageTimer;
 
     public GamePanel() {
         player = new Player();
@@ -102,6 +118,7 @@ public class GamePanel extends JPanel {
         npcDialogues.add(new String[]{"Narration", "You nod, then walk away."});
         npcDialogues.add(new String[]{"Veldric", "Can you not see I am also trapped here?! Come back and release me!"});
 
+        // 初始化NPC，使用默认构造函数（不缩放）
         npc = new NPC(325, 210, "src/resources/images/npc.png", npcDialogues);
 
         specialWall = new Rectangle(360, 0, 80, 10); // 特殊空气墙的位置
@@ -126,6 +143,21 @@ public class GamePanel extends JPanel {
             repaint();
         });
         axeMessageTimer.setRepeats(false);
+
+        // 初始化北部世界的精灵
+        initNorthElves();
+
+        // 初始化指示牌NPC
+        initSignalNPC();
+
+        initTreasureBox();
+
+        boxMessageTimer = new Timer(3000, e -> {
+            showBoxMessage = false;
+            ((Timer)e.getSource()).stop();
+            repaint();
+        });
+        boxMessageTimer.setRepeats(false);
     }
 
     // 初始化多个世界和它们的空气墙
@@ -224,6 +256,7 @@ public class GamePanel extends JPanel {
         checkAxeInteraction();
         checkSpecialWallInteraction();
         checkInventoryDisplay();
+        checkBoxInteraction();
         repaint(); // 确保每次更新后重绘面板
     }
 
@@ -273,32 +306,59 @@ public class GamePanel extends JPanel {
     }
 
     private void checkNPCInteraction() {
+        long currentTime = System.currentTimeMillis();
         if (currentWorld.equals("world_1") && npc != null) {
-            long currentTime = System.currentTimeMillis();
-            if (npc.isPlayerNear(player)) {
-                if (KeyInputHandler.isInteractPressed() && 
-                    (currentTime - lastInteractionTime > INTERACTION_COOLDOWN)) {
-                    if (!showDialogue) {
-                        // 开始新的对话
-                        currentDialogueIndex = 0;
-                        currentDialogue = npc.getNextDialogue(currentDialogueIndex);
-                        showDialogue = true;
-                    } else {
-                        // 继续下一段对话
-                        currentDialogueIndex++;
-                        currentDialogue = npc.getNextDialogue(currentDialogueIndex);
-                        if (currentDialogue == null) {
-                            showDialogue = false;
-                        }
-                    }
-                    lastInteractionTime = currentTime;
-                    KeyInputHandler.resetInteractPressed();
+            checkSingleNPCInteraction(npc, currentTime);
+        } else if (currentWorld.equals("world_north")) {
+            for (NPC elf : northElves) {
+                if (checkSingleNPCInteraction(elf, currentTime)) {
+                    break;
                 }
-            } else {
-                showDialogue = false;
             }
+            // 检查指示牌NPC的交互，使用新的方法
+            checkSignalInteraction();
         } else {
             showDialogue = false;
+            showSignalDialogue = false;
+        }
+    }
+
+    private boolean checkSingleNPCInteraction(NPC npc, long currentTime) {
+        if (npc.isPlayerNear(player)) {
+            if (KeyInputHandler.isInteractPressed() && 
+                (currentTime - lastInteractionTime > INTERACTION_COOLDOWN)) {
+                if (!showDialogue || currentInteractingNPC != npc) {
+                    // 开始新的对话
+                    currentDialogueIndex = 0;
+                    currentDialogue = npc.getNextDialogue(currentDialogueIndex);
+                    showDialogue = true;
+                    currentInteractingNPC = npc;
+                } else {
+                    // 继续下一段对话
+                    currentDialogueIndex++;
+                    currentDialogue = npc.getNextDialogue(currentDialogueIndex);
+                    if (currentDialogue == null) {
+                        showDialogue = false;
+                        currentInteractingNPC = null;
+                    }
+                }
+                lastInteractionTime = currentTime;
+                KeyInputHandler.resetInteractPressed();
+                return true;
+            }
+        } else if (currentInteractingNPC == npc) {
+            showDialogue = false;
+            currentInteractingNPC = null;
+        }
+        return false;
+    }
+
+    private void checkSignalInteraction() {
+        if (signalNPC.isPlayerNear(player)) {
+            showSignalDialogue = true;
+            currentDialogue = signalNPC.getNextDialogue(0);
+        } else {
+            showSignalDialogue = false;
         }
     }
 
@@ -387,6 +447,35 @@ public class GamePanel extends JPanel {
         showInventory = KeyInputHandler.isInventoryPressed();
     }
 
+    private void checkBoxInteraction() {
+        if (!currentWorld.equals("world_north")) return;
+
+        NPC currentBox = isBoxOpened ? openedBox : closedBox;
+        if (currentBox.isPlayerNear(player)) {
+            if (KeyInputHandler.isInteractPressed()) {
+                if (!isBoxOpened) {
+                    if (!showBoxMessage) {
+                        showBoxMessage("You found a treasure! Press E to open it.");
+                    } else {
+                        isBoxOpened = true;
+                        showBoxMessage("You opened the treasure box, and something showed up.");
+                        items.add(shabbyRing);
+                        boxMessageTimer.start();
+                    }
+                }
+                KeyInputHandler.resetInteractPressed();
+            }
+        } else {
+            showBoxMessage = false;
+        }
+    }
+
+    private void showBoxMessage(String message) {
+        boxMessage = message;
+        showBoxMessage = true;
+        repaint();
+    }
+
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (backgroundImage != null) {
@@ -404,15 +493,29 @@ public class GamePanel extends JPanel {
             g.fillRect(wall.x, wall.y, wall.width, wall.height); // 绘制墙体
         }
 
-        // Only draw NPC in world_1
+        // 绘制NPC
         if (currentWorld.equals("world_1")) {
             npc.draw(g);
+        } else if (currentWorld.equals("world_north")) {
+            for (NPC elf : northElves) {
+                elf.draw(g);
+            }
+            signalNPC.draw(g);
+            if (isBoxOpened) {
+                openedBox.draw(g);
+            } else {
+                closedBox.draw(g);
+            }
         }
 
         player.draw(g); // 确保主角在物品和NPC之上绘制
 
+        // 绘制对话框
         if (showDialogue) {
             drawDialogueBox(g);
+        }
+        if (showSignalDialogue) {
+            drawSignalDialogueBox(g);
         }
 
         // 绘制特殊墙消息
@@ -433,9 +536,31 @@ public class GamePanel extends JPanel {
         if (showInventory) {
             drawInventory(g);
         }
+
+        if (showBoxMessage) {
+            drawBoxMessage(g);
+        }
     }
 
     private void drawDialogueBox(Graphics g) {
+        if (currentDialogue == null) return;
+
+        // Draw heading
+        g.setColor(new Color(50, 50, 50, 200));
+        g.fillRect(50, 370, 700, 30);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString(currentDialogue[0], 60, 390); // Draw title
+
+        // Draw dialogue box
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(50, 400, 700, 150);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        drawWrappedText(g, currentDialogue[1], 70, 430, 660, 20); // Draw content
+    }
+
+    private void drawSignalDialogueBox(Graphics g) {
         if (currentDialogue == null) return;
 
         // Draw heading
@@ -511,6 +636,14 @@ public class GamePanel extends JPanel {
         }
     }
 
+    private void drawBoxMessage(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(50, 500, 700, 50);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        g.drawString(boxMessage, 70, 530);
+    }
+
     // 新增的绘制换行文本的方法
     private void drawWrappedText(Graphics g, String text, int x, int y, int width, int lineHeight) {
         FontMetrics metrics = g.getFontMetrics(g.getFont());
@@ -528,5 +661,45 @@ public class GamePanel extends JPanel {
             }
         }
         g.drawString(line.toString(), x, y); // 绘制最后行
+    }
+
+    private void initNorthElves() {
+        northElves = new ArrayList<>();
+        
+        // 创建四个精灵NPC，每个都有独特的对话内容，并设置缩放比例
+        NPC elf1 = createElf("Scarlet", 100, 100, "src/resources/images/Scarlet.png", "Hello, human! Help me! I am so angry at Emerald, she's such a liar. How can she charge me for stealing the key? To be honest, she is the thief! Amber did not steal by the way, look at her dumb face (rolls eyes), she is not smart enough to do that.", ELF_SCALE);
+        NPC elf2 = createElf("Sapphire", 300, 200, "src/resources/images/Sapphire.png", "(coldly) Filthy human, back away from me! I didn’t steal.", ELF_SCALE);
+        NPC elf3 = createElf("Emerald", 500, 300, "src/resources/images/Emerald.png", "Scarlet is the thief!!!!! She stole my cake (cries)...and whatever you seek.", ELF_SCALE);
+        NPC elf4 = createElf("Amber", 700, 400, "src/resources/images/Amber.png", "(says nervously)…Sorryyyy, I have not been talking to guys for some time… I saw Sapphire taking the key away, she hates humans (sighs). Please do not hurt her, I know you are the human king, you must be a kind man, right?", ELF_SCALE);
+        
+        northElves.add(elf1);
+        northElves.add(elf2);
+        northElves.add(elf3);
+        northElves.add(elf4);
+    }
+
+    private NPC createElf(String name, int x, int y, String imagePath, String dialogueContent, double scale) {
+        ArrayList<String[]> elfDialogues = new ArrayList<>();
+        elfDialogues.add(new String[]{name, dialogueContent});
+        return new NPC(x, y, imagePath, elfDialogues, scale);
+    }
+
+    private void initSignalNPC() {
+        ArrayList<String[]> signalDialogues = new ArrayList<>();
+        signalDialogues.add(new String[]{"Signal", "Sprites are lovely creatures who always lie. It is observed that when four of them come together, there will only be one telling the truth."});
+        signalNPC = new NPC(350, 580, "src/resources/images/signal.png", signalDialogues, 1.5); // 使用0.5作为缩放比例，您可以根据需要调整
+    }
+
+    private void initTreasureBox() {
+        ArrayList<String[]> closedBoxDialogues = new ArrayList<>();
+        closedBoxDialogues.add(new String[]{"Treasure Box", "You found a treasure! Press E to open it."});
+        closedBox = new NPC(500, 400, "src/resources/images/closed_box.png", closedBoxDialogues, 1);
+
+        ArrayList<String[]> openedBoxDialogues = new ArrayList<>();
+        openedBoxDialogues.add(new String[]{"Treasure Box", "You opened the treasure box, and something showed up."});
+        openedBox = new NPC(500, 400, "src/resources/images/opened_box.png", openedBoxDialogues, 1);
+
+        shabbyRing = new Item(520, 420, "src/resources/images/shabby_ring.png", "Shabby ring of fire", 
+            "According to rumors, this ring is the relic of the ancient fire god Vulcan after his death in battle. If abused by greedy and cunning people, it will bring terrifying destructive power.");
     }
 }
