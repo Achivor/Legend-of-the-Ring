@@ -458,8 +458,8 @@ public class GamePanel extends JPanel {
                         showBoxMessage("You found a treasure! Press E to open it.");
                     } else {
                         isBoxOpened = true;
-                        showBoxMessage("You opened the treasure box, and something showed up.");
-                        items.add(shabbyRing);
+                        showBoxMessage("You opened the treasure box, and something suddenly flow out and attached to you. (check your inventory)");
+                        player.addItem(shabbyRing);
                         boxMessageTimer.start();
                     }
                 }
@@ -637,30 +637,32 @@ public class GamePanel extends JPanel {
     }
 
     private void drawBoxMessage(Graphics g) {
+        if (!showBoxMessage) return;
+
         g.setColor(new Color(0, 0, 0, 200));
-        g.fillRect(50, 500, 700, 50);
+        g.fillRect(50, 450, 700, 100); // 增加对话框的高度
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 16));
-        g.drawString(boxMessage, 70, 530);
+        
+        // 使用 drawWrappedText 方法来绘制换行的文本
+        drawWrappedText(g, boxMessage, 70, 480, 660, 20);
     }
 
     // 新增的绘制换行文本的方法
     private void drawWrappedText(Graphics g, String text, int x, int y, int width, int lineHeight) {
-        FontMetrics metrics = g.getFontMetrics(g.getFont());
+        FontMetrics fm = g.getFontMetrics();
         String[] words = text.split(" ");
         StringBuilder line = new StringBuilder();
-
         for (String word : words) {
-            String testLine = line + word + " ";
-            if (metrics.stringWidth(testLine) > width) {
-                g.drawString(line.toString(), x, y);
-                line = new StringBuilder(word + " ");
-                y += lineHeight; // 换行
+            if (fm.stringWidth(line + word) < width) {
+                line.append(word).append(" ");
             } else {
-                line = new StringBuilder(testLine);
+                g.drawString(line.toString(), x, y);
+                y += lineHeight;
+                line = new StringBuilder(word).append(" ");
             }
         }
-        g.drawString(line.toString(), x, y); // 绘制最后行
+        g.drawString(line.toString(), x, y);
     }
 
     private void initNorthElves() {
@@ -696,10 +698,10 @@ public class GamePanel extends JPanel {
         closedBox = new NPC(500, 400, "src/resources/images/closed_box.png", closedBoxDialogues, 1);
 
         ArrayList<String[]> openedBoxDialogues = new ArrayList<>();
-        openedBoxDialogues.add(new String[]{"Treasure Box", "You opened the treasure box, and something showed up."});
+        openedBoxDialogues.add(new String[]{"Treasure Box", "You opened the treasure box, and something suddenly flow out and attached to you. (check your inventory)"});
         openedBox = new NPC(500, 400, "src/resources/images/opened_box.png", openedBoxDialogues, 1);
 
-        shabbyRing = new Item(520, 420, "src/resources/images/shabby_ring.png", "Shabby ring of fire", 
+        shabbyRing = new Item(0, 0, "src/resources/images/shabby_ring.png", "Shabby ring of fire", 
             "According to rumors, this ring is the relic of the ancient fire god Vulcan after his death in battle. If abused by greedy and cunning people, it will bring terrifying destructive power.");
     }
 }
