@@ -79,6 +79,14 @@ public class GamePanel extends JPanel implements MouseListener {
     private String[] statueOptions = {"Scarlet", "Amber", "Sapphire", "Emerald"};
     private Rectangle[] optionRectangles;
 
+    private Item elvenFeather;
+    private boolean showStatueMessage = false;
+    private String statueMessage = "";
+    private Timer statueMessageTimer;
+
+    private boolean isStatueInteractable = true;
+    private boolean hasCollectedElvenFeather = false;
+
     public GamePanel() {
         player = new Player();
         this.setPreferredSize(new Dimension(800, 600));
@@ -168,7 +176,15 @@ public class GamePanel extends JPanel implements MouseListener {
         boxMessageTimer.setRepeats(false);
 
         initStatue();
+        initElvenFeather();
         addMouseListener(this);
+        
+        statueMessageTimer = new Timer(3000, e -> {
+            showStatueMessage = false;
+            isStatueInteractable = true; // 重置雕像可交互状态
+            statueMessageTimer.stop();
+            repaint();
+        });
     }
 
     // 初始化多个世界和它们的空气墙
@@ -557,6 +573,10 @@ public class GamePanel extends JPanel implements MouseListener {
         if (showStatueDialogue) {
             drawStatueDialogue(g);
         }
+
+        if (showStatueMessage) {
+            drawStatueMessage(g);
+        }
     }
 
     private void drawDialogueBox(Graphics g) {
@@ -728,7 +748,7 @@ public class GamePanel extends JPanel implements MouseListener {
 
     private void checkStatueInteraction() {
         if (currentWorld.equals("world_north") && statue.isPlayerNear(player)) {
-            if (KeyInputHandler.isInteractPressed()) {
+            if (KeyInputHandler.isInteractPressed() && isStatueInteractable && !hasCollectedElvenFeather) {
                 showStatueDialogue = true;
                 KeyInputHandler.resetInteractPressed();
             }
@@ -759,6 +779,47 @@ public class GamePanel extends JPanel implements MouseListener {
         }
     }
 
+    private void initElvenFeather() {
+        elvenFeather = new Item(0, 0, "src/resources/images/elven_feather.png", "Elven Feather", "A part of elve's body");
+    }
+
+    private void handleStatueOption(int optionIndex) {
+        String selectedOption = optionIndex < statueOptions.length ? statueOptions[optionIndex] : "Use axe";
+        switch (selectedOption) {
+            case "Scarlet":
+            case "Amber":
+            case "Emerald":
+                showStatueMessage("Nothing happened...");
+                isStatueInteractable = false;
+                break;
+            case "Sapphire":
+                showStatueMessage("The statue emitted a blinding glow, and an Elven Feather fell from the center of its chest. You picked it up.");
+                player.addItem(elvenFeather);
+                hasCollectedElvenFeather = true;
+                break;
+            case "Use axe":
+                showStatueMessage("You brutally hacked off the statue's wings with an axe and took the Elven Feather.");
+                player.addItem(elvenFeather);
+                hasCollectedElvenFeather = true;
+                break;
+        }
+        showStatueDialogue = false;
+    }
+
+    private void showStatueMessage(String message) {
+        statueMessage = message;
+        showStatueMessage = true;
+        statueMessageTimer.restart();
+    }
+
+    private void drawStatueMessage(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(50, 450, 700, 100);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        drawWrappedText(g, statueMessage, 70, 480, 660, 20);
+    }
+
     @Override
     public void mouseClicked(MouseEvent e) {
         if (showStatueDialogue) {
@@ -769,13 +830,6 @@ public class GamePanel extends JPanel implements MouseListener {
                 }
             }
         }
-    }
-
-    private void handleStatueOption(int optionIndex) {
-        String selectedOption = optionIndex < statueOptions.length ? statueOptions[optionIndex] : "Use axe";
-        System.out.println("Selected option: " + selectedOption);
-        // 在这里添加选项的具体处理逻辑
-        showStatueDialogue = false;
     }
 
     // 实现其他 MouseListener 方法（保持为空）
