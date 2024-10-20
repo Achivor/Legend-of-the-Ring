@@ -1,19 +1,22 @@
 package main;
 
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import javax.imageio.ImageIO;
-import javax.swing.*;
+import javax.swing.*; // 确保导入Item类
 import model.Item;
 import model.NPC;
-import model.Player; // 确保导入Item类
+import model.Player;
 
-public class GamePanel extends JPanel {
+public class GamePanel extends JPanel implements MouseListener {
     private Player player;
     private HashMap<String, BufferedImage> worldBackgrounds; // 存储多个世界的背景
     private HashMap<String, ArrayList<Rectangle>> worldWalls; // 存储多个世界的空气墙
@@ -70,6 +73,11 @@ public class GamePanel extends JPanel {
     private boolean showBoxMessage = false;
     private String boxMessage = "";
     private Timer boxMessageTimer;
+
+    private NPC statue;
+    private boolean showStatueDialogue = false;
+    private String[] statueOptions = {"Scarlet", "Amber", "Sapphire", "Emerald"};
+    private Rectangle[] optionRectangles;
 
     public GamePanel() {
         player = new Player();
@@ -158,6 +166,9 @@ public class GamePanel extends JPanel {
             repaint();
         });
         boxMessageTimer.setRepeats(false);
+
+        initStatue();
+        addMouseListener(this);
     }
 
     // 初始化多个世界和它们的空气墙
@@ -257,6 +268,7 @@ public class GamePanel extends JPanel {
         checkSpecialWallInteraction();
         checkInventoryDisplay();
         checkBoxInteraction();
+        checkStatueInteraction();
         repaint(); // 确保每次更新后重绘面板
     }
 
@@ -506,6 +518,7 @@ public class GamePanel extends JPanel {
             } else {
                 closedBox.draw(g);
             }
+            statue.draw(g);
         }
 
         player.draw(g); // 确保主角在物品和NPC之上绘制
@@ -539,6 +552,10 @@ public class GamePanel extends JPanel {
 
         if (showBoxMessage) {
             drawBoxMessage(g);
+        }
+
+        if (showStatueDialogue) {
+            drawStatueDialogue(g);
         }
     }
 
@@ -689,7 +706,7 @@ public class GamePanel extends JPanel {
     private void initSignalNPC() {
         ArrayList<String[]> signalDialogues = new ArrayList<>();
         signalDialogues.add(new String[]{"Signal", "Sprites are lovely creatures who always lie. It is observed that when four of them come together, there will only be one telling the truth."});
-        signalNPC = new NPC(350, 580, "src/resources/images/signal.png", signalDialogues, 1.5); // 使用0.5作为缩放比例，您可以根据需要调整
+        signalNPC = new NPC(350, 500, "src/resources/images/signal.png", signalDialogues, 1.5); // 使用0.5作为缩放比例，您可以根据需要调整
     }
 
     private void initTreasureBox() {
@@ -702,6 +719,72 @@ public class GamePanel extends JPanel {
         openedBox = new NPC(500, 400, "src/resources/images/opened_box.png", openedBoxDialogues, 1);
 
         shabbyRing = new Item(0, 0, "src/resources/images/shabby_ring.png", "Shabby ring of fire", 
-            "According to rumors, this ring is the relic of the ancient fire god Vulcan after his death in battle. If abused by greedy and cunning people, it will bring terrifying destructive power.");
+            "This ring is the relic of the ancient fire god Vulcan after his death in the fateful battle, which could wield terrifying destructive power if used against a living creature.");
     }
+
+    private void initStatue() {
+        statue = new NPC(400, 300, "src/resources/images/statue.png", new ArrayList<>(), 1.0);
+    }
+
+    private void checkStatueInteraction() {
+        if (currentWorld.equals("world_north") && statue.isPlayerNear(player)) {
+            if (KeyInputHandler.isInteractPressed()) {
+                showStatueDialogue = true;
+                KeyInputHandler.resetInteractPressed();
+            }
+        } else {
+            showStatueDialogue = false;
+        }
+    }
+
+    private void drawStatueDialogue(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(200, 100, 400, 400);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 16));
+        g.drawString("Who stole the Elven Feather?", 220, 140);
+        g.drawString("Choose:", 220, 170);
+
+        optionRectangles = new Rectangle[statueOptions.length];
+        for (int i = 0; i < statueOptions.length; i++) {
+            int y = 200 + i * 40;
+            g.drawString(statueOptions[i], 220, y);
+            optionRectangles[i] = new Rectangle(220, y - 20, 360, 30);
+        }
+
+        if (player.hasItem("Axe")) {
+            g.drawString("Use axe", 220, 360);
+            optionRectangles = Arrays.copyOf(optionRectangles, optionRectangles.length + 1);
+            optionRectangles[optionRectangles.length - 1] = new Rectangle(220, 340, 360, 30);
+        }
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        if (showStatueDialogue) {
+            for (int i = 0; i < optionRectangles.length; i++) {
+                if (optionRectangles[i].contains(e.getPoint())) {
+                    handleStatueOption(i);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void handleStatueOption(int optionIndex) {
+        String selectedOption = optionIndex < statueOptions.length ? statueOptions[optionIndex] : "Use axe";
+        System.out.println("Selected option: " + selectedOption);
+        // 在这里添加选项的具体处理逻辑
+        showStatueDialogue = false;
+    }
+
+    // 实现其他 MouseListener 方法（保持为空）
+    @Override
+    public void mousePressed(MouseEvent e) {}
+    @Override
+    public void mouseReleased(MouseEvent e) {}
+    @Override
+    public void mouseEntered(MouseEvent e) {}
+    @Override
+    public void mouseExited(MouseEvent e) {}
 }
