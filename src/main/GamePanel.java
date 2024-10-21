@@ -87,6 +87,12 @@ public class GamePanel extends JPanel implements MouseListener {
     private boolean isStatueInteractable = true;
     private boolean hasCollectedElvenFeather = false;
 
+    private Rectangle specialBottomWall;
+    private boolean isSpecialBottomWallActive = true;
+    private String specialBottomWallMessage = "";
+    private boolean showSpecialBottomWallMessage = false;
+    private Timer specialBottomWallMessageTimer;
+
     public GamePanel() {
         player = new Player();
         this.setPreferredSize(new Dimension(800, 600));
@@ -185,6 +191,15 @@ public class GamePanel extends JPanel implements MouseListener {
             statueMessageTimer.stop();
             repaint();
         });
+
+        initSpecialBottomWall();
+        
+        specialBottomWallMessageTimer = new Timer(3000, e -> {
+            showSpecialBottomWallMessage = false;
+            ((Timer)e.getSource()).stop();
+            repaint();
+        });
+        specialBottomWallMessageTimer.setRepeats(false);
     }
 
     // 初始化多个世界和它们的空气墙
@@ -271,6 +286,9 @@ public class GamePanel extends JPanel implements MouseListener {
         if (currentWorld.equals("world_1") && isSpecialWallActive) {
             currentWalls.add(specialWall);
         }
+        if (currentWorld.equals("world_1") && isSpecialBottomWallActive) {
+            currentWalls.add(specialBottomWall);
+        }
 
         if (currentWorld.equals("world_1") && npc != null) {
             player.update(currentWalls, npc.getCollisionBox());
@@ -285,6 +303,7 @@ public class GamePanel extends JPanel implements MouseListener {
         checkInventoryDisplay();
         checkBoxInteraction();
         checkStatueInteraction();
+        checkSpecialBottomWallInteraction();
         repaint(); // 确保每次更新后重绘面板
     }
 
@@ -577,6 +596,10 @@ public class GamePanel extends JPanel implements MouseListener {
         if (showStatueMessage) {
             drawStatueMessage(g);
         }
+
+        if (showSpecialBottomWallMessage) {
+            drawSpecialBottomWallMessage(g);
+        }
     }
 
     private void drawDialogueBox(Graphics g) {
@@ -841,4 +864,48 @@ public class GamePanel extends JPanel implements MouseListener {
     public void mouseEntered(MouseEvent e) {}
     @Override
     public void mouseExited(MouseEvent e) {}
+
+    private void initSpecialBottomWall() {
+        specialBottomWall = new Rectangle(0, 590, 800, 10);
+    }
+
+    private void checkSpecialBottomWallInteraction() {
+        if (!currentWorld.equals("world_1") || !isSpecialBottomWallActive) {
+            return;
+        }
+
+        Rectangle expandedWall = new Rectangle(specialBottomWall.x, specialBottomWall.y - 20, 
+                                               specialBottomWall.width, specialBottomWall.height + 20);
+        
+        if (expandedWall.intersects(player.getCollisionBox())) {
+            if (!showSpecialBottomWallMessage) {
+                showSpecialBottomWallMessage("Ahead is the boundary of the elven world! No non-Elven creatures shall enter! (Press E to try to enter)");
+            }
+            if (KeyInputHandler.isInteractPressed()) {
+                if (player.hasItem("Elven Feather")) {
+                    isSpecialBottomWallActive = false;
+                    showSpecialBottomWallMessage("The Elven Feather you carry penetrates the unseen boundary, and you successfully step into the elven world!");
+                } else {
+                    showSpecialBottomWallMessage("The moment you step in, the air seems to condense, a powerful magnetism repels every inch of your sinews, you fail to get in.");
+                }
+                KeyInputHandler.resetInteractPressed();
+            }
+        } else {
+            showSpecialBottomWallMessage = false;
+        }
+    }
+
+    private void showSpecialBottomWallMessage(String message) {
+        specialBottomWallMessage = message;
+        showSpecialBottomWallMessage = true;
+        specialBottomWallMessageTimer.restart();
+    }
+
+    private void drawSpecialBottomWallMessage(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(50, 450, 700, 100);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        drawWrappedText(g, specialBottomWallMessage, 70, 480, 660, 20);
+    }
 }
