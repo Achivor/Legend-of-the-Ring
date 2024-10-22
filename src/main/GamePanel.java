@@ -93,6 +93,8 @@ public class GamePanel extends JPanel implements MouseListener {
     private boolean showSpecialBottomWallMessage = false;
     private Timer specialBottomWallMessageTimer;
 
+    private static final String FINAL_WORLD = "final_world";
+
     public GamePanel() {
         player = new Player();
         this.setPreferredSize(new Dimension(800, 600));
@@ -214,6 +216,7 @@ public class GamePanel extends JPanel implements MouseListener {
             worldBackgrounds.put("world_east", ImageIO.read(new File("src/resources/images/world_east.png")));
             worldBackgrounds.put("world_west", ImageIO.read(new File("src/resources/images/world_west.png")));
             worldBackgrounds.put(HIDDEN_WORLD, ImageIO.read(new File("src/resources/images/hidden_world.png"))); // 隐藏世界的背景图
+            worldBackgrounds.put(FINAL_WORLD, ImageIO.read(new File("src/resources/images/final_world.png")));
         } catch (IOException e) {
             System.out.println("Error: Could not load world backgrounds.");
         }
@@ -242,7 +245,7 @@ public class GamePanel extends JPanel implements MouseListener {
         wallsEast.add(new Rectangle(0, 590, 800, 10)); // 底部墙
 
         ArrayList<Rectangle> wallsWest = new ArrayList<>();
-        wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        //wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
         wallsWest.add(new Rectangle(0, 590, 800, 10)); // 底部墙
         wallsWest.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         //wallsWest.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
@@ -253,6 +256,12 @@ public class GamePanel extends JPanel implements MouseListener {
         //wallsHidden.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         wallsHidden.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
+        ArrayList<Rectangle> wallsFinal = new ArrayList<>();
+        wallsFinal.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        //wallsFinal.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        wallsFinal.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        wallsFinal.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+
         // 将每个世界的空气墙与其对应的世界关联
         worldWalls.put("world_1", walls1);
         worldWalls.put("world_north", wallsNorth);
@@ -260,6 +269,7 @@ public class GamePanel extends JPanel implements MouseListener {
         worldWalls.put("world_east", wallsEast);
         worldWalls.put("world_west", wallsWest);
         worldWalls.put(HIDDEN_WORLD, wallsHidden); // 添加隐藏世界的空气墙
+        worldWalls.put(FINAL_WORLD, wallsFinal);
     }
 
     // 加载指定的世界
@@ -278,6 +288,11 @@ public class GamePanel extends JPanel implements MouseListener {
             items.add(key);
         } else if (HIDDEN_WORLD.equals(world) && !player.hasItem("Axe")) {
             items.add(axe);
+        }
+
+        // 重置玩家位置（如果需要）
+        if (world.equals(FINAL_WORLD)) {
+            //player.setPosition(400, 550); // 设置玩家在最终世界的初始位置
         }
     }
 
@@ -338,17 +353,22 @@ public class GamePanel extends JPanel implements MouseListener {
             else if (currentWorld.equals("world_south")){
                 loadWorld("world_1");
             }
+            else if (currentWorld.equals("world_west")){
+                loadWorld(FINAL_WORLD);
+            }
             player.setPosition(player.getX(), 590); // 设置玩家传送到新世界底部
         }
         else if (player.getY() >= 590) { // 到达下边缘
             if (currentWorld.equals("world_north")) {
                 loadWorld("world_1");
-                player.setPosition(player.getX(), 10); // 返回到原始世界顶部
             }
             else if (currentWorld.equals("world_1")) {
                 loadWorld("world_south");
-                player.setPosition(player.getX(), 10); // 设置玩家传送到新世界顶部
             }
+            else if (currentWorld.equals(FINAL_WORLD)){
+                loadWorld("world_west");
+            }
+            player.setPosition(player.getX(), 10); // 设置玩家传送到新世界顶部
         }
     }
 
