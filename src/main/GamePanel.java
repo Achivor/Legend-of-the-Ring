@@ -693,7 +693,7 @@ public class GamePanel extends JPanel implements MouseListener {
         g.drawString("Inventory", 70, 90);
 
         // 列出物品
-        g.setFont(new Font("Arial", Font.PLAIN, 16)); // 设置描述的字体
+        g.setFont(new Font("Arial", Font.PLAIN, 16)); // 设置统一的字体
         ArrayList<Item> inventory = player.getInventory();
         int yOffset = 110; // 初始Y偏移量
 
@@ -703,14 +703,13 @@ public class GamePanel extends JPanel implements MouseListener {
             int imageSize = 30; // 设置贴图显示大小
             g.drawImage(itemImage, 70, yOffset, imageSize, imageSize, null);
 
-            // 绘制物品名称，设置为加粗
-            g.setFont(new Font("Arial", Font.BOLD, 16)); // 设置加粗字体
+            // 绘制物品名称（不再使用粗体）
+            g.setColor(Color.WHITE);
             g.drawString(item.getName(), 110, yOffset + 20);
 
-            // 绘制物品描述，处理换行
+            // 绘制物品描述
             String description = item.getDescription();
-            g.setFont(new Font("Arial", Font.PLAIN, 16)); // 恢复为普通字体
-            drawWrappedText(g, description, 110, yOffset + 40, 580, 20); // 580是文本区域的宽度
+            drawWrappedText(g, description, 110, yOffset + 40, 620, 20);
 
             yOffset += 60; // 更新Y偏移量
         }
@@ -904,9 +903,9 @@ public class GamePanel extends JPanel implements MouseListener {
             if (KeyInputHandler.isInteractPressed()) {
                 if (player.hasItem("Elven Feather")) {
                     isSpecialBottomWallActive = false;
-                    showSpecialBottomWallMessage("The Elven Feather you carry penetrates the unseen boundary, and you successfully step into the elven world!");
+                    showSpecialBottomWallMessage("The Elven Feather you carry slips through the unseen boundary, you successfully step into the elven world!");
                 } else {
-                    showSpecialBottomWallMessage("The moment you step in, the air seems to condense, a powerful magnetism repels every inch of your sinews, you fail to get in.");
+                    showSpecialBottomWallMessage("Ouch! You fall down to your knees as you are trying to enter. Is this the elven magic Vivian once told you? You definitely need something to obtain permission from the elves.");
                 }
                 KeyInputHandler.resetInteractPressed();
             }
