@@ -95,6 +95,14 @@ public class GamePanel extends JPanel implements MouseListener {
 
     private static final String FINAL_WORLD = "final_world";
 
+    private NPC jean;
+    private boolean showJeanQuestion = false;
+    private Item goldenKey;
+    private String[] jeanOptions = {"1", "infinity", "1/2", "0", "Use fire"};
+    private Rectangle[] jeanOptionRectangles;
+    private boolean jeanDialogueCompleted = false;
+    private boolean jeanBurned = false;
+
     public GamePanel() {
         player = new Player();
         this.setPreferredSize(new Dimension(800, 600));
@@ -202,6 +210,8 @@ public class GamePanel extends JPanel implements MouseListener {
             repaint();
         });
         specialBottomWallMessageTimer.setRepeats(false);
+
+        initJean();
     }
 
     // 初始化多个世界和它们的空气墙
@@ -319,7 +329,7 @@ public class GamePanel extends JPanel implements MouseListener {
         checkBoxInteraction();
         checkStatueInteraction();
         checkSpecialBottomWallInteraction();
-        repaint(); // 确保每次更新后重绘面板
+        repaint(); // 确保每��更新后重绘面板
     }
 
     private void checkWorldSwitch() {
@@ -384,6 +394,27 @@ public class GamePanel extends JPanel implements MouseListener {
             }
             // 检查指示牌NPC的交互，使用新的方法
             checkSignalInteraction();
+        } else if (currentWorld.equals("world_south") && jean.isPlayerNear(player)) {
+            if (KeyInputHandler.isInteractPressed()) {
+                if (jeanDialogueCompleted) {
+                    showDialogue = true;
+                    currentDialogue = new String[]{"Jean", jeanBurned ? "......" : "Good luck!"};
+                } else if (!showDialogue || currentInteractingNPC != jean) {
+                    showDialogue = true;
+                    currentInteractingNPC = jean;
+                    currentDialogueIndex = 0;
+                    currentDialogue = jean.getNextDialogue(currentDialogueIndex);
+                } else {
+                    currentDialogueIndex++;
+                    if (currentDialogueIndex < jean.getDialogueCount()) {
+                        currentDialogue = jean.getNextDialogue(currentDialogueIndex);
+                    } else if (currentDialogueIndex == jean.getDialogueCount()) {
+                        showJeanQuestion = true;
+                        showDialogue = false;
+                    }
+                }
+                KeyInputHandler.resetInteractPressed();
+            }
         } else {
             showDialogue = false;
             showSignalDialogue = false;
@@ -574,6 +605,8 @@ public class GamePanel extends JPanel implements MouseListener {
                 closedBox.draw(g);
             }
             statue.draw(g);
+        } else if (currentWorld.equals("world_south")) {
+            jean.draw(g);
         }
 
         player.draw(g); // 确保主角在物品和NPC之上绘制
@@ -619,6 +652,10 @@ public class GamePanel extends JPanel implements MouseListener {
 
         if (showSpecialBottomWallMessage) {
             drawSpecialBottomWallMessage(g);
+        }
+
+        if (showJeanQuestion) {
+            drawJeanQuestion(g);
         }
     }
 
@@ -703,16 +740,37 @@ public class GamePanel extends JPanel implements MouseListener {
             int imageSize = 30; // 设置贴图显示大小
             g.drawImage(itemImage, 70, yOffset, imageSize, imageSize, null);
 
-            // 绘制物品名称（不再使用粗体）
+            // 绘制物品名称（加上冒号）
             g.setColor(Color.WHITE);
-            g.drawString(item.getName(), 110, yOffset + 20);
+            g.drawString(item.getName() + ":", 110, yOffset + 20);
 
             // 绘制物品描述
             String description = item.getDescription();
-            drawWrappedText(g, description, 110, yOffset + 40, 620, 20);
+            int descriptionHeight = drawWrappedText(g, description, 110, yOffset + 40, 620, 20);
 
-            yOffset += 60; // 更新Y偏移量
+            yOffset += descriptionHeight + 40; // 更新Y偏移量，增加物品之间的间距
         }
+    }
+
+    // 修改 drawWrappedText 方法，返回绘制的文本高度
+    private int drawWrappedText(Graphics g, String text, int x, int y, int width, int lineHeight) {
+        FontMetrics fm = g.getFontMetrics();
+        String[] words = text.split(" ");
+        StringBuilder line = new StringBuilder();
+        int linesDrawn = 0;
+        for (String word : words) {
+            if (fm.stringWidth(line + word) < width) {
+                line.append(word).append(" ");
+            } else {
+                g.drawString(line.toString(), x, y);
+                y += lineHeight;
+                linesDrawn++;
+                line = new StringBuilder(word).append(" ");
+            }
+        }
+        g.drawString(line.toString(), x, y);
+        linesDrawn++;
+        return linesDrawn * lineHeight;
     }
 
     private void drawBoxMessage(Graphics g) {
@@ -725,23 +783,6 @@ public class GamePanel extends JPanel implements MouseListener {
         
         // 使用 drawWrappedText 方法来绘制换行的文本
         drawWrappedText(g, boxMessage, 70, 480, 660, 20);
-    }
-
-    // 新增的绘制换行文本的方法
-    private void drawWrappedText(Graphics g, String text, int x, int y, int width, int lineHeight) {
-        FontMetrics fm = g.getFontMetrics();
-        String[] words = text.split(" ");
-        StringBuilder line = new StringBuilder();
-        for (String word : words) {
-            if (fm.stringWidth(line + word) < width) {
-                line.append(word).append(" ");
-            } else {
-                g.drawString(line.toString(), x, y);
-                y += lineHeight;
-                line = new StringBuilder(word).append(" ");
-            }
-        }
-        g.drawString(line.toString(), x, y);
     }
 
     private void initNorthElves() {
@@ -872,6 +913,14 @@ public class GamePanel extends JPanel implements MouseListener {
                 }
             }
         }
+        if (showJeanQuestion) {
+            for (int i = 0; i < jeanOptionRectangles.length; i++) {
+                if (jeanOptionRectangles[i] != null && jeanOptionRectangles[i].contains(e.getPoint())) {
+                    handleJeanAnswer(jeanOptions[i]);
+                    break;
+                }
+            }
+        }
     }
 
     // 实现其他 MouseListener 方法（保持为空）
@@ -926,5 +975,70 @@ public class GamePanel extends JPanel implements MouseListener {
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 16));
         drawWrappedText(g, specialBottomWallMessage, 70, 480, 660, 20);
+    }
+
+    private void initJean() {
+        ArrayList<String[]> jeanDialogues = new ArrayList<>();
+        jeanDialogues.add(new String[]{"Jean", "I would not let you pass…Vivian does not deserve this."});
+        jeanDialogues.add(new String[]{"You", "This is not fair! Vivian must be missing me so much, I need to go to her side. Claire, you also carry the blood of an elf, do you betray your own kind?"});
+        jeanDialogues.add(new String[]{"Jean", "(closes her eyes) Fine. This is my question, but I could not promise you anything."});
+        jean = new NPC(400, 300, "src/resources/images/Jean.png", jeanDialogues, 1.5);
+
+        goldenKey = new Item(0, 0, "src/resources/images/golden_key.png", "Golden key", "The permit to the palace");
+    }
+
+    private void drawJeanQuestion(Graphics g) {
+        if (!showJeanQuestion) return;
+
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(50, 50, 700, 500);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        g.drawString("(Jean shows on a piece of paper)", 70, 90);
+
+        // 绘制 question.png 图片
+        try {
+            BufferedImage questionImage = ImageIO.read(new File("src/resources/images/question.png"));
+            g.drawImage(questionImage, 70, 120, null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        g.drawString("Choose:", 70, 400);
+
+        jeanOptionRectangles = new Rectangle[jeanOptions.length];
+        for (int i = 0; i < jeanOptions.length; i++) {
+            if (i == 4 && !player.hasItem("Shabby ring of fire")) continue;
+            g.drawString(jeanOptions[i], 70, 430 + i * 30);
+            jeanOptionRectangles[i] = new Rectangle(70, 410 + i * 30, 150, 30);
+        }
+    }
+
+    private void handleJeanAnswer(String answer) {
+        showJeanQuestion = false;
+        showDialogue = true;
+        switch (answer) {
+            case "0":
+                currentDialogue = new String[]{"Jean", "Fine, you win, here's the golden key"};
+                player.addItem(goldenKey);
+                jeanDialogueCompleted = true;
+                break;
+            case "Use fire":
+                currentDialogue = new String[]{"Jean", "AAhhhhh (suffer) noooo"};
+                player.addItem(goldenKey);
+                jeanDialogueCompleted = true;
+                jeanBurned = true;
+                break;
+            default:
+                currentDialogue = new String[]{"Jean", "Haha, I knew it!"};
+                break;
+        }
+    }
+
+    private void drawNPCs(Graphics g) {
+        // ... 保留现有的 NPC 绘制代码 ...
+        if (currentWorld.equals("world_south")) {
+            jean.draw(g);
+        }
     }
 }
