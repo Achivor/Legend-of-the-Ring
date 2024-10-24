@@ -8,6 +8,7 @@ public class KeyInputHandler implements KeyListener {
     private Player player;
     private static boolean interactPressed = false;
     private static boolean inventoryPressed = false;
+    private static boolean quitPressed = false;
 
     public KeyInputHandler(Player player) {
         this.player = player;
@@ -35,6 +36,9 @@ public class KeyInputHandler implements KeyListener {
         if (key == KeyEvent.VK_R) {
             inventoryPressed = true;
         }
+        if (key == KeyEvent.VK_Q) {
+            quitPressed = true;
+        }
     }
 
     @Override
@@ -59,6 +63,9 @@ public class KeyInputHandler implements KeyListener {
         if (key == KeyEvent.VK_R) {
             inventoryPressed = false;
         }
+        if (key == KeyEvent.VK_Q) {
+            quitPressed = false;
+        }
     }
 
     @Override
@@ -76,5 +83,9 @@ public class KeyInputHandler implements KeyListener {
 
     public static boolean isInventoryPressed() {
         return inventoryPressed;
+    }
+
+    public static boolean isQuitPressed() {
+        return quitPressed;
     }
 }

@@ -29,9 +29,9 @@ public class GamePanel extends JPanel implements MouseListener {
 
     private NPC npc;
     private List<NPC> northElves;
-    private boolean showDialogue;
+    private boolean showDialogue = false;
     private String[] currentDialogue;
-    private int currentDialogueIndex;
+    private int currentDialogueIndex = 0;
     private NPC currentInteractingNPC;
     private boolean showInventory = false;
 
@@ -61,7 +61,7 @@ public class GamePanel extends JPanel implements MouseListener {
 
     private boolean isKeyCollected = false; // 跟踪Key物品是否已被拾取
 
-    private static final double ELF_SCALE = 0.8; // 精灵贴图缩放比例，可以根据需要调整
+    private static final double ELF_SCALE = 0.8; // 精灵贴图缩放比例，可以根需要调整
 
     private NPC signalNPC; // 新增的指示牌NPC
     private boolean showSignalDialogue = false;
@@ -102,6 +102,22 @@ public class GamePanel extends JPanel implements MouseListener {
     private Rectangle[] jeanOptionRectangles;
     private boolean jeanDialogueCompleted = false;
     private boolean jeanBurned = false;
+
+    private NPC teleport;
+    private boolean showTeleportMessage = false;
+    private String teleportMessage = "";
+
+    private int kill_count = 0; // 新增的 kill_count 变量
+
+    private NPC vivian0;
+    private NPC soldier;
+    private NPC vivian;
+    private NPC hank;
+    private boolean showFinalDialogue = false;
+    private String finalDialogueContent = "";
+    private ArrayList<String[]> currentDialogues;
+
+    private boolean isFinalWorldDialogue = false;
 
     public GamePanel() {
         player = new Player();
@@ -214,7 +230,7 @@ public class GamePanel extends JPanel implements MouseListener {
         initJean();
     }
 
-    // 初始化多个世界和它们的空气墙
+    // 初始化多��世界和它们的空气墙
     private void initWorlds() {
         worldBackgrounds = new HashMap<>();
         worldWalls = new HashMap<>();
@@ -256,7 +272,7 @@ public class GamePanel extends JPanel implements MouseListener {
 
         ArrayList<Rectangle> wallsWest = new ArrayList<>();
         //wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
-        wallsWest.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        wallsWest.add(new Rectangle(0, 590, 800, 10)); // 底墙
         wallsWest.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         //wallsWest.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
@@ -280,6 +296,8 @@ public class GamePanel extends JPanel implements MouseListener {
         worldWalls.put("world_west", wallsWest);
         worldWalls.put(HIDDEN_WORLD, wallsHidden); // 添加隐藏世界的空气墙
         worldWalls.put(FINAL_WORLD, wallsFinal);
+
+        initTeleport();
     }
 
     // 加载指定的世界
@@ -302,7 +320,8 @@ public class GamePanel extends JPanel implements MouseListener {
 
         // 重置玩家位置（如果需要）
         if (world.equals(FINAL_WORLD)) {
-            //player.setPosition(400, 550); // 设置玩家在最终世界的初始位置
+            player.setPosition(400, 550); // 设置玩家在最终世界的初始位置
+            initFinalWorldNPCs(); // 初始化最终世界的 NPC
         }
     }
 
@@ -321,7 +340,9 @@ public class GamePanel extends JPanel implements MouseListener {
             player.update(currentWalls, null);
         }
         checkWorldSwitch();
-        checkNPCInteraction();
+        if (!isFinalWorldDialogue) {
+            checkNPCInteraction();
+        }
         checkKeyInteraction();
         checkAxeInteraction();
         checkSpecialWallInteraction();
@@ -329,7 +350,13 @@ public class GamePanel extends JPanel implements MouseListener {
         checkBoxInteraction();
         checkStatueInteraction();
         checkSpecialBottomWallInteraction();
-        repaint(); // 确保每��更新后重绘面板
+        checkTeleportInteraction();
+        checkFinalWorldInteractions();
+        repaint(); // 确保每更新后重绘面板
+
+        if (showFinalDialogue && KeyInputHandler.isQuitPressed()) {
+            System.exit(0);
+        }
     }
 
     private void checkWorldSwitch() {
@@ -363,9 +390,9 @@ public class GamePanel extends JPanel implements MouseListener {
             else if (currentWorld.equals("world_south")){
                 loadWorld("world_1");
             }
-            else if (currentWorld.equals("world_west")){
+            /*else if (currentWorld.equals("world_west")){
                 loadWorld(FINAL_WORLD);
-            }
+            }*/
             player.setPosition(player.getX(), 590); // 设置玩家传送到新世界底部
         }
         else if (player.getY() >= 590) { // 到达下边缘
@@ -375,9 +402,9 @@ public class GamePanel extends JPanel implements MouseListener {
             else if (currentWorld.equals("world_1")) {
                 loadWorld("world_south");
             }
-            else if (currentWorld.equals(FINAL_WORLD)){
+            /*else if (currentWorld.equals(FINAL_WORLD)){
                 loadWorld("world_west");
-            }
+            }*/
             player.setPosition(player.getX(), 10); // 设置玩家传送到新世界顶部
         }
     }
@@ -546,7 +573,9 @@ public class GamePanel extends JPanel implements MouseListener {
     }
 
     private void checkBoxInteraction() {
-        if (!currentWorld.equals("world_north")) return;
+        if (!currentWorld.equals("world_north")) {
+            return;
+        }
 
         NPC currentBox = isBoxOpened ? openedBox : closedBox;
         if (currentBox.isPlayerNear(player)) {
@@ -577,7 +606,7 @@ public class GamePanel extends JPanel implements MouseListener {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         if (backgroundImage != null) {
-            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), null); // 绘制当前世界背景
+            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), null);
         }
 
         // 绘制物品
@@ -586,30 +615,15 @@ public class GamePanel extends JPanel implements MouseListener {
         }
 
         // 绘制所有空气墙
-        g.setColor(Color.RED); // 设置颜色为红色
+        g.setColor(Color.RED);
         for (Rectangle wall : walls) {
-            g.fillRect(wall.x, wall.y, wall.width, wall.height); // 绘制墙体
+            g.fillRect(wall.x, wall.y, wall.width, wall.height);
         }
 
-        // 绘制NPC
-        if (currentWorld.equals("world_1")) {
-            npc.draw(g);
-        } else if (currentWorld.equals("world_north")) {
-            for (NPC elf : northElves) {
-                elf.draw(g);
-            }
-            signalNPC.draw(g);
-            if (isBoxOpened) {
-                openedBox.draw(g);
-            } else {
-                closedBox.draw(g);
-            }
-            statue.draw(g);
-        } else if (currentWorld.equals("world_south")) {
-            jean.draw(g);
-        }
+        // 调用 drawNPCs 方法
+        drawNPCs(g);
 
-        player.draw(g); // 确保主角在物品和NPC之上绘制
+        player.draw(g);
 
         // 绘制对话框
         if (showDialogue) {
@@ -657,10 +671,35 @@ public class GamePanel extends JPanel implements MouseListener {
         if (showJeanQuestion) {
             drawJeanQuestion(g);
         }
+
+        if (showTeleportMessage) {
+            drawTeleportMessage(g);
+        }
+
+        if (currentWorld.equals(FINAL_WORLD)) {
+            if (kill_count == 0 && vivian0 != null) {
+                vivian0.draw(g);
+            } else if (kill_count == 1 && soldier != null) {
+                soldier.draw(g);
+            } else if (kill_count == 2) {
+                if (vivian != null) {
+                    vivian.draw(g);
+                }
+                if (hank != null) {
+                    hank.draw(g);
+                }
+            }
+        }
+
+        if (showFinalDialogue) {
+            drawFinalDialogue(g);
+        }
     }
 
     private void drawDialogueBox(Graphics g) {
-        if (currentDialogue == null) return;
+        if (currentDialogue == null) {
+            return;
+        }
 
         // Draw heading
         g.setColor(new Color(50, 50, 50, 200));
@@ -678,7 +717,9 @@ public class GamePanel extends JPanel implements MouseListener {
     }
 
     private void drawSignalDialogueBox(Graphics g) {
-        if (currentDialogue == null) return;
+        if (currentDialogue == null) {
+            return;
+        }
 
         // Draw heading
         g.setColor(new Color(50, 50, 50, 200));
@@ -774,26 +815,28 @@ public class GamePanel extends JPanel implements MouseListener {
     }
 
     private void drawBoxMessage(Graphics g) {
-        if (!showBoxMessage) return;
+        if (!showBoxMessage) {
+            return;
+        }
 
         g.setColor(new Color(0, 0, 0, 200));
         g.fillRect(50, 450, 700, 100); // 增加对话框的高度
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 16));
-        
+
         // 使用 drawWrappedText 方法来绘制换行的文本
         drawWrappedText(g, boxMessage, 70, 480, 660, 20);
     }
 
     private void initNorthElves() {
         northElves = new ArrayList<>();
-        
+
         // 创建四个精灵NPC，每个都有独特的对话内容，并设置缩放比例
         NPC elf1 = createElf("Scarlet", 100, 100, "src/resources/images/Scarlet.png", "Hello, human! Help me! I am so angry at Emerald, she's such a liar. How can she charge me for stealing the key? To be honest, she is the thief! Amber did not steal by the way, look at her dumb face (rolls eyes), she is not smart enough to do that.", ELF_SCALE);
-        NPC elf2 = createElf("Sapphire", 300, 200, "src/resources/images/Sapphire.png", "(coldly) Filthy human, back away from me! I didn’t steal.", ELF_SCALE);
+        NPC elf2 = createElf("Sapphire", 300, 200, "src/resources/images/Sapphire.png", "(coldly) Filthy human, back away from me! Ididnt steal.", ELF_SCALE);
         NPC elf3 = createElf("Emerald", 500, 300, "src/resources/images/Emerald.png", "Scarlet is the thief!!!!! She stole my cake (cries)...and whatever you seek.", ELF_SCALE);
         NPC elf4 = createElf("Amber", 700, 400, "src/resources/images/Amber.png", "(says nervously)…Sorryyyy, I have not been talking to guys for some time… I saw Sapphire taking the key away, she hates humans (sighs). Please do not hurt her, I know you are the human king, you must be a kind man, right?", ELF_SCALE);
-        
+
         northElves.add(elf1);
         northElves.add(elf2);
         northElves.add(elf3);
@@ -821,8 +864,8 @@ public class GamePanel extends JPanel implements MouseListener {
         openedBoxDialogues.add(new String[]{"Treasure Box", "You opened the treasure box, and something suddenly flow out and attached to you. (check your inventory)"});
         openedBox = new NPC(500, 400, "src/resources/images/opened_box.png", openedBoxDialogues, 1);
 
-        shabbyRing = new Item(0, 0, "src/resources/images/shabby_ring.png", "Shabby ring of fire", 
-            "This ring is the relic of the ancient fire god Vulcan after his death in the fateful battle, which could wield terrifying destructive power if used against a living creature.");
+        shabbyRing = new Item(0, 0, "src/resources/images/shabby_ring.png", "Shabby ring of fire",
+                "This ring is the relic of the ancient fire god Vulcan after his death in the fateful battle, which could wield terrifying destructive power if used against a living creature.");
     }
 
     private void initStatue() {
@@ -884,6 +927,9 @@ public class GamePanel extends JPanel implements MouseListener {
                 showStatueMessage("You brutally hacked off the statue's wings with an axe and took the Elven Feather.");
                 player.addItem(elvenFeather);
                 hasCollectedElvenFeather = true;
+                kill_count++; // 增加 kill_count
+                break;
+            default:
                 break;
         }
         showStatueDialogue = false;
@@ -925,13 +971,20 @@ public class GamePanel extends JPanel implements MouseListener {
 
     // 实现其他 MouseListener 方法（保持为空）
     @Override
-    public void mousePressed(MouseEvent e) {}
+    public void mousePressed(MouseEvent e) {
+    }
+
     @Override
-    public void mouseReleased(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) {
+    }
+
     @Override
-    public void mouseEntered(MouseEvent e) {}
+    public void mouseEntered(MouseEvent e) {
+    }
+
     @Override
-    public void mouseExited(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {
+    }
 
     private void initSpecialBottomWall() {
         specialBottomWall = new Rectangle(0, 590, 800, 10);
@@ -942,9 +995,9 @@ public class GamePanel extends JPanel implements MouseListener {
             return;
         }
 
-        Rectangle expandedWall = new Rectangle(specialBottomWall.x, specialBottomWall.y - 20, 
-                                               specialBottomWall.width, specialBottomWall.height + 20);
-        
+        Rectangle expandedWall = new Rectangle(specialBottomWall.x, specialBottomWall.y - 20,
+                specialBottomWall.width, specialBottomWall.height + 20);
+
         if (expandedWall.intersects(player.getCollisionBox())) {
             if (!showSpecialBottomWallMessage) {
                 showSpecialBottomWallMessage("Ahead is the boundary of the elven world! No non-Elven creatures shall enter! (Press E to try to enter)");
@@ -988,7 +1041,9 @@ public class GamePanel extends JPanel implements MouseListener {
     }
 
     private void drawJeanQuestion(Graphics g) {
-        if (!showJeanQuestion) return;
+        if (!showJeanQuestion) {
+            return;
+        }
 
         g.setColor(new Color(0, 0, 0, 200));
         g.fillRect(50, 50, 700, 500);
@@ -1008,7 +1063,9 @@ public class GamePanel extends JPanel implements MouseListener {
 
         jeanOptionRectangles = new Rectangle[jeanOptions.length];
         for (int i = 0; i < jeanOptions.length; i++) {
-            if (i == 4 && !player.hasItem("Shabby ring of fire")) continue;
+            if (i == 4 && !player.hasItem("Shabby ring of fire")) {
+                continue;
+            }
             g.drawString(jeanOptions[i], 70, 430 + i * 30);
             jeanOptionRectangles[i] = new Rectangle(70, 410 + i * 30, 150, 30);
         }
@@ -1026,6 +1083,7 @@ public class GamePanel extends JPanel implements MouseListener {
             case "Use fire":
                 currentDialogue = new String[]{"Jean", "AAhhhhh (suffer) noooo"};
                 player.addItem(goldenKey);
+                kill_count++; // 增加 kill_count
                 jeanDialogueCompleted = true;
                 jeanBurned = true;
                 break;
@@ -1036,9 +1094,244 @@ public class GamePanel extends JPanel implements MouseListener {
     }
 
     private void drawNPCs(Graphics g) {
-        // ... 保留现有的 NPC 绘制代码 ...
-        if (currentWorld.equals("world_south")) {
+        if (currentWorld.equals("world_1")) {
+            npc.draw(g);
+        } else if (currentWorld.equals("world_north")) {
+            for (NPC elf : northElves) {
+                elf.draw(g);
+            }
+            signalNPC.draw(g);
+            if (isBoxOpened) {
+                openedBox.draw(g);
+            } else {
+                closedBox.draw(g);
+            }
+            statue.draw(g);
+        } else if (currentWorld.equals("world_south")) {
             jean.draw(g);
+        } else if (currentWorld.equals("world_west")) {
+            teleport.draw(g);
+        } else if (currentWorld.equals(FINAL_WORLD)) {
+            if (kill_count == 0 && vivian0 != null) {
+                vivian0.draw(g);
+            } else if (kill_count == 1 && soldier != null) {
+                soldier.draw(g);
+            } else if (kill_count == 2) {
+                if (vivian != null) {
+                    vivian.draw(g);
+                }
+                if (hank != null) {
+                    hank.draw(g);
+                }
+            }
         }
+    }
+
+    private void initTeleport() {
+        ArrayList<String[]> teleportDialogues = new ArrayList<>();
+        teleportDialogues.add(new String[]{"Teleport", "Press E to enter the palace."});
+        teleport = new NPC(400, 300, "src/resources/images/teleport.png", teleportDialogues, 0.1);
+    }
+
+    private void checkTeleportInteraction() {
+        if (currentWorld.equals("world_west") && teleport.isPlayerNear(player)) {
+            if (!showTeleportMessage) {
+                showTeleportMessage = true;
+                teleportMessage = "Press E to enter the palace.";
+            }
+            if (KeyInputHandler.isInteractPressed()) {
+                if (player.hasItem("Golden key")) {
+                    loadWorld(FINAL_WORLD);
+                    player.setPosition(370, 530); // 设置玩家在最终世界的初始位置
+                } else {
+                    teleportMessage = "You need a golden key!";
+                }
+                KeyInputHandler.resetInteractPressed();
+            }
+        } else {
+            showTeleportMessage = false;
+        }
+    }
+
+    private void drawTeleportMessage(Graphics g) {
+        if (!showTeleportMessage) {
+            return;
+        }
+
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(50, 450, 700, 100);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        drawWrappedText(g, teleportMessage, 70, 480, 660, 20);
+    }
+
+    private void initFinalWorldNPCs() {
+        if (kill_count == 0) {
+            ArrayList<String[]> vivian0Dialogues = new ArrayList<>(Arrays.asList(
+                    new String[]{"Narrative", "This palace feels familiar. It was supposed to be the place where your wedding was held."},
+                    new String[]{"Vivian", "Thor, you are here."},
+                    new String[]{"You", "(hold her hand) Yes, and I will never leave you, my love."},
+                    new String[]{"Vivian", "(smiles) You have changed. I would forgive you for whatever you have done as I see glory building up inside you once again."},
+                    new String[]{"You", "(kneel down) Vivian, will you marry…"},
+                    new String[]{"Narrative", "You search through your pocket, but there is nothing. WHERE THE HELL IS YOUR RING?"},
+                    new String[]{"Vivian", "(bursts into laughter) You are so cute. Forget about the ring, honestly, I hope it is never found."},
+                    new String[]{"You", "Then what's your answer to my quest?"},
+                    new String[]{"Vivian", "Yes, sure, i do."}
+            ));
+            vivian0 = new NPC(400, 300, "src/resources/images/Vivian0.png", vivian0Dialogues, 1.5);
+        } else if (kill_count == 1) {
+            ArrayList<String[]> soldierDialogues = new ArrayList<>(Arrays.asList(
+                    new String[]{"Narrative", "This palace feels very familiar. You must have reached your final destination."},
+                    new String[]{"Soldier", "Vivian is dead, she felt disappointed…"},
+                    new String[]{"You", "(Rage swarms your heart) HOW DARE YOU?"},
+                    new String[]{"Narrative", "You put on your ring, immediately feeling immense power accumulating inside you. This person must pay for what he has done, and you are never merciful towards betrayers."},
+                    new String[]{"Soldier", "My lord, don't—--"},
+                    new String[]{"Narrative", "Your enemy died. A sudden emptiness in your heart prevents you from feeling happy for whatever happened. Now that your love is gone, you should go to your people and fulfill your responsibility as the king, but you are just tired."},
+                    new String[]{"You", "(kiss your ring) Good bye Vivian."}
+            ));
+            soldier = new NPC(400, 300, "src/resources/images/soldier.png", soldierDialogues, 1.5);
+        } else if (kill_count == 2) {
+            ArrayList<String[]> vivianDialogues = new ArrayList<>(Arrays.asList(
+                    new String[]{"Narrative", "You enter your palace without hesitance. After all, you have been so relentless so far just to go to Vivian as fast as possible. There is no time to lose."},
+                    new String[]{"You", "Vivian, come back to me."},
+                    new String[]{"Narrative", "Vivian and the betrayer — Hank look very stunned. They are not expecting you to arrive so early, since you claimed to have lost your memory from the start."},
+                    new String[]{"Vivian", "(trembling) You lied…"},
+                    new String[]{"Hank", "My king, what turned you into this? Veldric lured you with the Magic Ring, which is why I trapped him. Our hero, our beloved king should have come back…"},
+                    new String[]{"You", "Why would you assume I am controlled by the Ring? Claiming the throne, invading the elven land, even—taking her father, the elven king's life, are all my own decisions. I have my ambitions, Hank. I had been expecting you, my loyal guard to understand me and you never!"},
+                    new String[]{"Hank", "(draws his sword) We shared the same dream and glory before, but no longer. Thorian, I shall challenge you to a duel!"},
+                    new String[]{"Vivian", "(weeps) There is no turning back…I betrayed my own people."},
+                    new String[]{"You", "That is why I dislike elvish creatures. You are always kind, docile, and naive! Are you programmed like this? Never meant to kill, hurt or hate. Vivian, it was only until I invaded your land that I realized we are never the same kind. When one does not hate, doesn't it mean there is also no love?"},
+                    new String[]{"Vivian", "……"},
+                    new String[]{"You", "It is alright, I don't care whether you love me or not. I need a queen, and your elvish ring. Your father passed that to you, right? I did not find it on his body. Come here, Vivian. I know you do not hate me."},
+                    new String[]{"Hank", "…Thorian!"},
+                    new String[]{"Narrative", "You ignore Hank as you are approaching Vivian. With the magic ring, no man can hurt you."},
+                    new String[]{"Vivian", "(murmurs)……no…"},
+                    new String[]{"You", "Say that again?"},
+                    new String[]{"Vivian", "(loudly) No!"},
+                    new String[]{"Narrative", "A sharp, cold pressure arises from your stomach, soon turning into hot pain. Agony radiates from your wound,spreading like wildfire through your body. YOU ARE STABBED."},
+                    new String[]{"You", "Vivian…"},
+                    new String[]{"Vivian", "(tears in her eyes) Your ring does not protect you from elven weapons. I do hate, Thor."},
+                    new String[]{"You", "I am happy to know… Your hatred is real, then your love is also…"},
+                    new String[]{"Hank", "Thorian, stop talking. I need to stop the bleeding."},
+                    new String[]{"Narrative", "As more blood flows out of your body, your mind starts to wander off. Hank was not only your guard, he was once your friend when you were still nobody. You are not regretful, you never cry over spilt milk. You are just wondering, was Vivian really trying to give you a second chance? What if you make another choice…"}
+            ));
+            vivian = new NPC(400, 300, "src/resources/images/Vivian.png", vivianDialogues, 1.5);
+            hank = new NPC(500, 300, "src/resources/images/Hank.png", new ArrayList<>(), 1.5);
+        }
+    }
+
+    private void checkFinalWorldInteractions() {
+        if (!currentWorld.equals(FINAL_WORLD)) {
+            return;
+        }
+
+        if (KeyInputHandler.isInteractPressed()) {
+            KeyInputHandler.resetInteractPressed();
+            if (kill_count == 0 && vivian0 != null && vivian0.isPlayerNear(player)) {
+                handleVivian0Dialogue();
+            } else if (kill_count == 1 && soldier != null && soldier.isPlayerNear(player)) {
+                handleSoldierDialogue();
+            } else if (kill_count == 2 && vivian != null && vivian.isPlayerNear(player)) {
+                handleVivianDialogue();
+            }
+        }
+    }
+
+    private void handleVivian0Dialogue() {
+        if (currentDialogues == null) {
+            currentDialogues = vivian0.getDialogues();
+            currentDialogueIndex = 0;
+            isFinalWorldDialogue = true;
+        }
+
+        if (currentDialogueIndex < currentDialogues.size()) {
+            String[] dialogue = currentDialogues.get(currentDialogueIndex);
+            showDialogue = true;
+            currentDialogue = dialogue;
+            currentDialogueIndex++;
+        } else {
+            showFinalDialogue("Good ending: I do\n\n" + 
+                                "Congratulations! You have reached the best ending! \n" + 
+                                "However, you must be holding onto many doubts about the truth.\n" +
+                                "We personally do not recommend going further, as this is the \n"+
+                                "only ending where Thorian and Vivian could live happily ever after.\n" +
+                                "If you are really curious about what had happened in the past,\n" +
+                                "try to explore more in the maze, there is a hidden room where\n" +
+                                "you can find an axe.\n" + 
+                                "Unfortunately, no one would be happy making that choice.\n" +
+                                "When you stare into the abyss, the abyss stares into you.\n\n" +
+                                "(Press Q to quit the game)");
+            isFinalWorldDialogue = false;
+        }
+    }
+
+    private void handleSoldierDialogue() {
+        if (currentDialogues == null) {
+            currentDialogues = soldier.getDialogues();
+            currentDialogueIndex = 0;
+            isFinalWorldDialogue = true;
+        }
+
+        if (currentDialogueIndex < currentDialogues.size()) {
+            String[] dialogue = currentDialogues.get(currentDialogueIndex);
+            showDialogue = true;
+            currentDialogue = dialogue;
+            currentDialogueIndex++;
+        } else {
+            showFinalDialogue("Normal end: Farewell.\n\n" +
+                                "Hint: Vivian dies of heartbreaking.\n" + 
+                                "The answer to Jean's question is 0. And the one who stole the\n" +
+                                "Elven Feather is Sapphire. Try not to cheat next time, especially\n" +
+                                "not to kill Jean, she is Vivian's best friend.\n" +
+                                "(Jean's model and name is credited by Genshin Impact. It is a \n" +
+                                "nice game, highly recommend to play it :) )\n\n" + 
+                                "(Press Q to quit the game)");
+            isFinalWorldDialogue = false;
+        }
+    }
+
+    private void handleVivianDialogue() {
+        if (currentDialogues == null) {
+            currentDialogues = vivian.getDialogues();
+            currentDialogueIndex = 0;
+            isFinalWorldDialogue = true;
+        }
+
+        if (currentDialogueIndex < currentDialogues.size()) {
+            String[] dialogue = currentDialogues.get(currentDialogueIndex);
+            showDialogue = true;
+            currentDialogue = dialogue;
+            currentDialogueIndex++;
+        } else {
+            showFinalDialogue("True ending: Choice\n\n(Press Q to quit the game)");
+            isFinalWorldDialogue = false;
+        }
+    }
+
+    private void showFinalDialogue(String content) {
+        showFinalDialogue = true;
+        finalDialogueContent = content;
+        repaint();
+    }
+
+    private void drawFinalDialogue(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(0, 0, getWidth(), getHeight());
+
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 20));
+
+        String[] lines = finalDialogueContent.split("\n");
+        int y = 100;
+        for (String line : lines) {
+            g.drawString(line, 50, y);
+            y += 30;
+        }
+    }
+
+    private void showDialogue(String speaker, String content) {
+        showDialogue = true;
+        currentDialogue = new String[]{speaker, content};
+        repaint();
     }
 }

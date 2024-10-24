@@ -66,4 +66,8 @@ public class NPC {
     public int getDialogueCount() {
         return dialogues.size();
     }
+
+    public ArrayList<String[]> getDialogues() {
+        return dialogues;
+    }
 }
