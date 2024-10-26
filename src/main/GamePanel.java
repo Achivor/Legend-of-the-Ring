@@ -268,11 +268,15 @@ public class GamePanel extends JPanel implements MouseListener {
         wallsSouth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsEast = new ArrayList<>();
+        wallsEast.add(new Rectangle(0, 0, 10, 240)); // left wall1
+        wallsEast.add(new Rectangle(0, 340, 10, 260)); //left wall2
         wallsEast.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
         wallsEast.add(new Rectangle(0, 590, 800, 10)); // 底部墙
 
         ArrayList<Rectangle> wallsWest = new ArrayList<>();
         //wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        //wallsEast.add(new Rectangle(790, 0, 10, 240));
+        //wallsEast.add(new Rectangle(790, 340, 10, 260));
         wallsWest.add(new Rectangle(0, 590, 800, 10)); // 底墙
         wallsWest.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         //wallsWest.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
