@@ -9,6 +9,7 @@ public class KeyInputHandler implements KeyListener {
     private static boolean interactPressed = false;
     private static boolean inventoryPressed = false;
     private static boolean quitPressed = false;
+    private static boolean showCoordinates = false; // 新增：用于跟踪是否显示坐标
 
     public KeyInputHandler(Player player) {
         this.player = player;
@@ -39,6 +40,9 @@ public class KeyInputHandler implements KeyListener {
         if (key == KeyEvent.VK_Q) {
             quitPressed = true;
         }
+        if (key == KeyEvent.VK_P) { // 显示坐标（新增）
+            showCoordinates = true;
+        }
     }
 
     @Override
@@ -66,6 +70,9 @@ public class KeyInputHandler implements KeyListener {
         if (key == KeyEvent.VK_Q) {
             quitPressed = false;
         }
+        if (key == KeyEvent.VK_P) { // 显示坐标（新增）
+            showCoordinates = false;
+        }
     }
 
     @Override
@@ -87,5 +94,9 @@ public class KeyInputHandler implements KeyListener {
 
     public static boolean isQuitPressed() {
         return quitPressed;
+    }
+
+    public static boolean isShowCoordinates() { // 显示坐标（新增）
+        return showCoordinates;
     }
 }

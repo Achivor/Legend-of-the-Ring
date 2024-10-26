@@ -129,8 +129,8 @@ public class GamePanel extends JPanel implements MouseListener {
         
         // 初始化物品
         items = new ArrayList<>(); // 确保在此处初始化items
-        key = new Item(500, 300, "src/resources/images/key.png", "Key", "A mysterious key that might unlock something important.");
-        axe = new Item(400, 200, "src/resources/images/axe.png", "Axe", "A sturdy axe that could be useful for cutting things."); // 设置Axe的位置和图片
+        key = new Item(500, 300, "src/resources/images/key.png", "Key", "A mysterious key that might unlock something important.", 0.5); // 使用 0.5 作为缩放因子，你可以根据需要调整这个值
+        axe = new Item(400, 200, "src/resources/images/axe.png", "Axe", "A sturdy axe that could be useful for cutting things.", 1.4); // 设置Axe的位置和图片
         ring = new Item(0, 0, "src/resources/images/ring.png", "Ring", "It is definitely not a gorgeous ring. However, it has a familiar vibe that seems to tempt you to put it on."); // 创建Ring物品
 
         // 将Ring物品添加到玩家的背包中
@@ -230,7 +230,7 @@ public class GamePanel extends JPanel implements MouseListener {
         initJean();
     }
 
-    // 初始化多��世界和它们的空气墙
+    // 初始化多世界和它们的空气墙
     private void initWorlds() {
         worldBackgrounds = new HashMap<>();
         worldWalls = new HashMap<>();
@@ -257,15 +257,32 @@ public class GamePanel extends JPanel implements MouseListener {
         ArrayList<Rectangle> wallsNorth = new ArrayList<>();
         wallsNorth.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
         wallsNorth.add(new Rectangle(0, 590, 360, 10)); // 底部墙1
-        wallsNorth.add(new Rectangle(440, 590, 360, 10)); // 底部墙1
+        wallsNorth.add(new Rectangle(440, 590, 360, 10)); // 底部墙2
         wallsNorth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         wallsNorth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+        wallsNorth.add(new Rectangle(625, 0, 10, 600)); // 空气墙
+        wallsNorth.add(new Rectangle(165, 0, 10, 600)); // 空气墙
+        wallsNorth.add(new Rectangle(0, 0, 800, 74)); // 空气墙
+        wallsNorth.add(new Rectangle(222, 322, 25, 42)); // 空气墙
+        wallsNorth.add(new Rectangle(538, 407, 25, 42)); // 空气墙
+        wallsNorth.add(new Rectangle(492, 176, 33, 36)); // 空气墙
+        wallsNorth.add(new Rectangle(360, 176, 33, 36)); // 空气墙
+        wallsNorth.add(new Rectangle(208, 206, 21, 18)); // 空气墙
+        wallsNorth.add(new Rectangle(376, 383, 45, 45)); // 空气墙
 
         ArrayList<Rectangle> wallsSouth = new ArrayList<>();
-        //wallsSouth.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        wallsSouth.add(new Rectangle(0, 0, 360, 10)); // top wall1
+        wallsSouth.add(new Rectangle(440, 0, 360, 10)); // top wall2
         wallsSouth.add(new Rectangle(0, 590, 800, 10)); // 底部墙
         wallsSouth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         wallsSouth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+        wallsSouth.add(new Rectangle(0, 0, 320, 94)); // 空气墙
+        wallsSouth.add(new Rectangle(480, 0, 320, 94)); // 空气墙
+        wallsSouth.add(new Rectangle(262, 94, 58, 42)); // 空气墙
+        wallsSouth.add(new Rectangle(480, 94, 58, 42)); // 空气墙
+        wallsSouth.add(new Rectangle(0, 560, 800, 10)); // 空气墙
+        wallsSouth.add(new Rectangle(402, 302, 25, 48)); // 空气墙
+        wallsSouth.add(new Rectangle(340, 535, 120, 50)); // 空气墙
 
         ArrayList<Rectangle> wallsEast = new ArrayList<>();
         wallsEast.add(new Rectangle(0, 0, 10, 240)); // left wall1
@@ -274,9 +291,9 @@ public class GamePanel extends JPanel implements MouseListener {
         wallsEast.add(new Rectangle(0, 590, 800, 10)); // 底部墙
 
         ArrayList<Rectangle> wallsWest = new ArrayList<>();
-        //wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
-        //wallsEast.add(new Rectangle(790, 0, 10, 240));
-        //wallsEast.add(new Rectangle(790, 340, 10, 260));
+        wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
+        wallsWest.add(new Rectangle(790, 0, 10, 240)); // right wall1
+        wallsWest.add(new Rectangle(790, 340, 10, 260)); // right wall2
         wallsWest.add(new Rectangle(0, 590, 800, 10)); // 底墙
         wallsWest.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         //wallsWest.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
@@ -323,10 +340,15 @@ public class GamePanel extends JPanel implements MouseListener {
             items.add(axe);
         }
 
-        // 重置玩家位置（如果需要）
+        // 设置玩家位置（如果需要）
         if (world.equals(FINAL_WORLD)) {
             player.setPosition(400, 550); // 设置玩家在最终世界的初始位置
             initFinalWorldNPCs(); // 初始化最终世界的 NPC
+            
+            // 新增：当进入最终世界且 kill_count 为 0 时，删除 "Ring" 物品
+            if (kill_count == 0) {
+                player.removeItem("Ring");
+            }
         }
     }
 
@@ -620,10 +642,12 @@ public class GamePanel extends JPanel implements MouseListener {
         }
 
         // 绘制所有空气墙
+        
         g.setColor(Color.RED);
         for (Rectangle wall : walls) {
             g.fillRect(wall.x, wall.y, wall.width, wall.height);
         }
+        
 
         // 调用 drawNPCs 方法
         drawNPCs(g);
@@ -698,6 +722,11 @@ public class GamePanel extends JPanel implements MouseListener {
 
         if (showFinalDialogue) {
             drawFinalDialogue(g);
+        }
+
+        // 在最后添加绘制坐标的逻辑
+        if (KeyInputHandler.isShowCoordinates()) { // 显示坐标（新增）
+            drawCoordinates(g);
         }
     }
 
@@ -837,10 +866,10 @@ public class GamePanel extends JPanel implements MouseListener {
         northElves = new ArrayList<>();
 
         // 创建四个精灵NPC，每个都有独特的对话内容，并设置缩放比例
-        NPC elf1 = createElf("Scarlet", 100, 100, "src/resources/images/Scarlet.png", "Hello, human! Help me! I am so angry at Emerald, she's such a liar. How can she charge me for stealing the key? To be honest, she is the thief! Amber did not steal by the way, look at her dumb face (rolls eyes), she is not smart enough to do that.", ELF_SCALE);
-        NPC elf2 = createElf("Sapphire", 300, 200, "src/resources/images/Sapphire.png", "(coldly) Filthy human, back away from me! Ididnt steal.", ELF_SCALE);
-        NPC elf3 = createElf("Emerald", 500, 300, "src/resources/images/Emerald.png", "Scarlet is the thief!!!!! She stole my cake (cries)...and whatever you seek.", ELF_SCALE);
-        NPC elf4 = createElf("Amber", 700, 400, "src/resources/images/Amber.png", "(says nervously)…Sorryyyy, I have not been talking to guys for some time… I saw Sapphire taking the key away, she hates humans (sighs). Please do not hurt her, I know you are the human king, you must be a kind man, right?", ELF_SCALE);
+        NPC elf1 = createElf("Scarlet", 360, 173, "src/resources/images/Scarlet.png", "Hello, human! Help me! I am so angry at Emerald, she's such a liar. How can she charge me for stealing the key? To be honest, she is the thief! Amber did not steal by the way, look at her dumb face (rolls eyes), she is not smart enough to do that.", ELF_SCALE);
+        NPC elf2 = createElf("Sapphire", 490, 173, "src/resources/images/Sapphire.png", "(coldly) Filthy human, back away from me! Ididnt steal.", ELF_SCALE);
+        NPC elf3 = createElf("Emerald", 220, 315, "src/resources/images/Emerald.png", "Scarlet is the thief!!!!! She stole my cake (cries)...and whatever you seek.", ELF_SCALE);
+        NPC elf4 = createElf("Amber", 535, 400, "src/resources/images/Amber.png", "(says nervously)…Sorryyyy, I have not been talking to guys for some time… I saw Sapphire taking the key away, she hates humans (sighs). Please do not hurt her, I know you are the human king, you must be a kind man, right?", ELF_SCALE);
 
         northElves.add(elf1);
         northElves.add(elf2);
@@ -857,24 +886,24 @@ public class GamePanel extends JPanel implements MouseListener {
     private void initSignalNPC() {
         ArrayList<String[]> signalDialogues = new ArrayList<>();
         signalDialogues.add(new String[]{"Signal", "Sprites are lovely creatures who always lie. It is observed that when four of them come together, there will only be one telling the truth."});
-        signalNPC = new NPC(350, 500, "src/resources/images/signal.png", signalDialogues, 1.5); // 使用0.5作为缩放比例，您可以根据需要调整
+        signalNPC = new NPC(214, 527, "src/resources/images/signal.png", signalDialogues, 1.5); // 使用0.5作为缩放比例，您可以根据需要调整
     }
 
     private void initTreasureBox() {
         ArrayList<String[]> closedBoxDialogues = new ArrayList<>();
         closedBoxDialogues.add(new String[]{"Treasure Box", "You found a treasure! Press E to open it."});
-        closedBox = new NPC(500, 400, "src/resources/images/closed_box.png", closedBoxDialogues, 1);
+        closedBox = new NPC(208, 206, "src/resources/images/closed_box.png", closedBoxDialogues, 1);
 
         ArrayList<String[]> openedBoxDialogues = new ArrayList<>();
         openedBoxDialogues.add(new String[]{"Treasure Box", "You opened the treasure box, and something suddenly flow out and attached to you. (check your inventory)"});
-        openedBox = new NPC(500, 400, "src/resources/images/opened_box.png", openedBoxDialogues, 1);
+        openedBox = new NPC(208, 206, "src/resources/images/opened_box.png", openedBoxDialogues, 1);
 
         shabbyRing = new Item(0, 0, "src/resources/images/shabby_ring.png", "Shabby ring of fire",
                 "This ring is the relic of the ancient fire god Vulcan after his death in the fateful battle, which could wield terrifying destructive power if used against a living creature.");
     }
 
     private void initStatue() {
-        statue = new NPC(400, 300, "src/resources/images/statue.png", new ArrayList<>(), 1.0);
+        statue = new NPC(376, 383, "src/resources/images/statue.png", new ArrayList<>(), 1.0);
     }
 
     private void checkStatueInteraction() {
@@ -1289,7 +1318,7 @@ public class GamePanel extends JPanel implements MouseListener {
                                 "Elven Feather is Sapphire. Try not to cheat next time, especially\n" +
                                 "not to kill Jean, she is Vivian's best friend.\n" +
                                 "(Jean's model and name is credited by Genshin Impact. It is a \n" +
-                                "nice game, highly recommend to play it :) )\n\n" + 
+                                "nice game, highly recommend to play it :) )\n\n" +
                                 "(Press Q to quit the game)");
             isFinalWorldDialogue = false;
         }
@@ -1338,5 +1367,14 @@ public class GamePanel extends JPanel implements MouseListener {
         showDialogue = true;
         currentDialogue = new String[]{speaker, content};
         repaint();
+    }
+
+    private void drawCoordinates(Graphics g) { // 显示坐标（新增）
+        String coordinates = String.format("X: %d, Y: %d", player.getX(), player.getY());
+        g.setColor(new Color(0, 0, 0, 200));
+        g.fillRect(10, 10, 150, 30);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.PLAIN, 16));
+        g.drawString(coordinates, 20, 30);
     }
 }

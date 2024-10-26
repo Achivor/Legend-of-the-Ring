@@ -309,4 +309,8 @@ public class Player {
     public ArrayList<Item> getInventory() {
         return inventory;
     }
+
+    public void removeItem(String itemName) {
+        inventory.removeIf(item -> item.getName().equals(itemName));
+    }
 }

@@ -6,6 +6,7 @@ public class RPGGame {
     private static JFrame frame;
     private static GamePanel gamePanel;
 
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             frame = new JFrame("RPG Game");

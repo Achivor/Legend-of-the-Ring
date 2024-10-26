@@ -50,8 +50,8 @@ public class NPC {
 
     public boolean isPlayerNear(Player player) {
         Rectangle expandedBox = new Rectangle(
-            x - 20, y - 20, 
-            image.getWidth() + 40, image.getHeight() + 40
+            x - 10, y - 5, 
+            image.getWidth() + 20, image.getHeight() + 10
         );
         return expandedBox.intersects(player.getCollisionBox());
     }
