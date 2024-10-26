@@ -18,7 +18,7 @@ In *Legend of the Ring*, you can:
 This game is developed entirely in **Java**.
 
 ### How To Play
-Link:
+Link:*********
 Download and run RPGGame.java!
 
 ### Game Walkthrough
