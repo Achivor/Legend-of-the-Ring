@@ -18,8 +18,8 @@ In *Legend of the Ring*, you can:
 This game is developed entirely in **Java**.
 
 ### How To Play
-- Link:*********
-- Download and run RPGGame.java!
+- Link: [Legend-of-the-Ring](https://github.com/Achivor/Legend-of-the-Ring)
+- Download the whole file and run RPGGame.java (src/main/RPGGame.java).
 
 ### Game Walkthrough
 To maximize your game experience, please refer to the walkthrough below.
