@@ -256,7 +256,8 @@ public class GamePanel extends JPanel implements MouseListener {
 
         ArrayList<Rectangle> wallsNorth = new ArrayList<>();
         wallsNorth.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
-        //wallsNorth.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        wallsNorth.add(new Rectangle(0, 590, 360, 10)); // 底部墙1
+        wallsNorth.add(new Rectangle(440, 590, 360, 10)); // 底部墙1
         wallsNorth.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         wallsNorth.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
@@ -425,7 +426,7 @@ public class GamePanel extends JPanel implements MouseListener {
             if (KeyInputHandler.isInteractPressed()) {
                 if (jeanDialogueCompleted) {
                     showDialogue = true;
-                    currentDialogue = new String[]{"Jean", jeanBurned ? "......" : "Good luck!"};
+                    currentDialogue = new String[]{"Jean", jeanBurned ? "......" : "Vivian is waiting for you."};
                 } else if (!showDialogue || currentInteractingNPC != jean) {
                     showDialogue = true;
                     currentInteractingNPC = jean;
@@ -513,11 +514,11 @@ public class GamePanel extends JPanel implements MouseListener {
                     isSpecialWallActive = false;
                     showMessage("You have opened the passage!");
                 } else {
-                    showMessage("You need a key!");
+                    showMessage("You are locked out!");
                 }
                 KeyInputHandler.resetInteractPressed();
             } else if (!showSpecialWallMessage) {
-                showMessage("Press E to use the key");
+                showMessage("There is a heavy door in front of you, press E to try to open it.");
             }
         } else {
             showSpecialWallMessage = false;
@@ -1076,19 +1077,19 @@ public class GamePanel extends JPanel implements MouseListener {
         showDialogue = true;
         switch (answer) {
             case "0":
-                currentDialogue = new String[]{"Jean", "Fine, you win, here's the golden key"};
+                currentDialogue = new String[]{"Jean", "(plainly) You win. No wonder you are the King Thorian. I shall follow my words and pass the golden key to you. Please, do not hurt Vivian anymore."};
                 player.addItem(goldenKey);
                 jeanDialogueCompleted = true;
                 break;
             case "Use fire":
-                currentDialogue = new String[]{"Jean", "AAhhhhh (suffer) noooo"};
+                currentDialogue = new String[]{"Jean", "I know it...Vivian, run..."};
                 player.addItem(goldenKey);
                 kill_count++; // 增加 kill_count
                 jeanDialogueCompleted = true;
                 jeanBurned = true;
                 break;
             default:
-                currentDialogue = new String[]{"Jean", "Haha, I knew it!"};
+                currentDialogue = new String[]{"Jean", "No."};
                 break;
         }
     }
@@ -1129,7 +1130,7 @@ public class GamePanel extends JPanel implements MouseListener {
 
     private void initTeleport() {
         ArrayList<String[]> teleportDialogues = new ArrayList<>();
-        teleportDialogues.add(new String[]{"Teleport", "Press E to enter the palace."});
+        teleportDialogues.add(new String[]{"Teleport", "You know this magic, it is a teleport waypoint which will probably lead you to somewhere familiar. Press E to teleport."});
         teleport = new NPC(400, 300, "src/resources/images/teleport.png", teleportDialogues, 0.1);
     }
 
