@@ -4,12 +4,20 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import model.Player;
 
+/**
+ * Handle keyboard input events in the game.
+ */
 public class KeyInputHandler implements KeyListener {
-    private Player player;
+    /** Player instance. */
+    private final Player player;
+    /** Whether the interact key is pressed. */
     private static boolean interactPressed = false;
+    /** Whether the inventory key is pressed. */
     private static boolean inventoryPressed = false;
+    /** Whether the quit key is pressed. */
     private static boolean quitPressed = false;
-    private static boolean showCoordinates = false; // 新增：用于跟踪是否显示坐标
+    /** For tracking whether to show coordinates. */
+    private static boolean showCoordinates = false;
 
     public KeyInputHandler(Player player) {
         this.player = player;
@@ -40,7 +48,7 @@ public class KeyInputHandler implements KeyListener {
         if (key == KeyEvent.VK_Q) {
             quitPressed = true;
         }
-        if (key == KeyEvent.VK_P) { // 显示坐标（新增）
+        if (key == KeyEvent.VK_P) { // Show coordinates (for DEBUG)
             showCoordinates = true;
         }
     }
@@ -70,14 +78,14 @@ public class KeyInputHandler implements KeyListener {
         if (key == KeyEvent.VK_Q) {
             quitPressed = false;
         }
-        if (key == KeyEvent.VK_P) { // 显示坐标（新增）
+        if (key == KeyEvent.VK_P) { // Show coordinates (for DEBUG)
             showCoordinates = false;
         }
     }
 
     @Override
     public void keyTyped(KeyEvent e) {
-        // 不需要实现
+        // No implementation needed
     }
 
     public static boolean isInteractPressed() {
@@ -96,7 +104,7 @@ public class KeyInputHandler implements KeyListener {
         return quitPressed;
     }
 
-    public static boolean isShowCoordinates() { // 显示坐标（新增）
+    public static boolean isShowCoordinates() { // Show coordinates (for DEBUG)
         return showCoordinates;
     }
 }

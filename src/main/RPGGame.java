@@ -2,6 +2,10 @@ package main;
 
 import javax.swing.*;
 
+/**
+ * The main class for the RPG game, responsible for initializing 
+ * the game window and managing game state.
+ */
 public class RPGGame {
     private static JFrame frame;
     private static GamePanel gamePanel;
@@ -29,7 +33,7 @@ public class RPGGame {
         frame.repaint();
         gamePanel.requestFocusInWindow();
         
-        // 使用 SwingWorker 来运行游戏循环
+        // Use SwingWorker to run the game loop
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
             @Override
             protected Void doInBackground() {
@@ -37,9 +41,11 @@ public class RPGGame {
                     gamePanel.update();
                     gamePanel.repaint();
                     try {
-                        Thread.sleep(16); // 约60FPS
+                        Thread.sleep(16); // Approximately 60 FPS
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        Thread.currentThread().interrupt(); 
+                        cancel(true); 
+                        break;     
                     }
                 }
                 return null;

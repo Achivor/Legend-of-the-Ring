@@ -9,12 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 
+/**
+ * The player class, representing the main character in the game.
+ * Handles the player's movement, animation, and item collection.
+ */
 public class Player {
-    private int playerX = 384;  // 主角的初始 X 坐标
-    private int playerY = 268;  // 主角的初始 Y 坐标
-    private int speed = 3; // 修改速度值，降低移动速度
-
-    // 用于跟踪移动状态
+    /** The x coordinate of the player in the game world. */
+    private int playerX = 384;
+    /** The y coordinate of the player in the game world. */
+    private int playerY = 268;
+    /** The speed of the player. */
+    private final int speed = 3;
+    
     private boolean movingUp = false;
     private boolean movingDown = false;
     private boolean movingLeft = false;
@@ -34,22 +40,25 @@ public class Player {
     private final Image playerRightStandImage;
 
     private int animationFrame = 0;
-    private int animationSpeed = 10;
+    private final int animationSpeed = 10;
     private int animationCounter = 0;
 
-    private double scaleFactor = 1.2; // 你可以调整这个因子来改变大小，保持比例
+    private double scaleFactor = 1.2;
 
-    // 存储图像的原始宽度和高度
     private final int originalWidth;
     private final int originalHeight;
 
-    private ArrayList<Item> inventory; // 背包
+    private final ArrayList<Item> inventory; 
 
-    private boolean hasKey = false; // 跟踪玩家是否拥有Key
+    private boolean hasKey = false; 
     private boolean hasAxe = false;
 
+
+    /**
+     * Initialize the player object, load all necessary image resources and set the initial state.
+     */
     public Player() {
-        // 加载行走动画图片
+        // Load walking animation images
         playerUpImages = new Image[] {
                 loadImage("src/resources/images/player_up_1.png"),
                 loadImage("src/resources/images/player_up_2.png")
@@ -67,13 +76,13 @@ public class Player {
                 loadImage("src/resources/images/player_right_2.png")
         };
 
-        // 加载站立姿势图片
+        // Load standing pose images
         playerUpStandImage = loadImage("src/resources/images/player_up_stand.png");
         playerDownStandImage = loadImage("src/resources/images/player_down_stand.png");
         playerLeftStandImage = loadImage("src/resources/images/player_left_stand.png");
         playerRightStandImage = loadImage("src/resources/images/player_right_stand.png");
 
-        // 设置原始图像的宽度和高度（以第一帧为例，假设它们是相同的）
+        // Set the original width and height of the image (assuming the first frame is the same)
         originalWidth = playerDownImages[0].getWidth(null);
         originalHeight = playerDownImages[0].getHeight(null);
 
@@ -82,7 +91,7 @@ public class Player {
 
     private Image loadImage(String path) {
         try {
-            return ImageIO.read(new File(path));  // 直接从文件系统加载图片
+            return ImageIO.read(new File(path));  // Load image directly from the file system
         } catch (IOException e) {
             System.out.println("Error: Could not load image from path: " + path);
             return null;
@@ -105,6 +114,11 @@ public class Player {
         this.movingRight = moving;
     }
 
+    /**
+     * Update the player's position and animation state.
+     * @param walls The list of wall collision boxes in the game.
+     * @param npcCollisionBox The collision box of the NPC.
+     */
     public void update(List<Rectangle> walls, Rectangle npcCollisionBox) {
         int newX = playerX;
         int newY = playerY;
@@ -141,7 +155,8 @@ public class Player {
     }
 
     private boolean canMove(int x, int y, List<Rectangle> walls, Rectangle npcCollisionBox) {
-        Rectangle playerBounds = new Rectangle(x, y, (int)(originalWidth * scaleFactor), (int)(originalHeight * scaleFactor));
+        Rectangle playerBounds = new Rectangle(x, y, 
+            (int) (originalWidth * scaleFactor), (int) (originalHeight * scaleFactor));
         
         for (Rectangle wall : walls) {
             if (playerBounds.intersects(wall)) {
@@ -149,13 +164,24 @@ public class Player {
             }
         }
 
-        if (npcCollisionBox != null && playerBounds.intersects(npcCollisionBox)) {
-            return false;
-        }
+        return !(npcCollisionBox != null && playerBounds.intersects(npcCollisionBox));
+    }
 
+    private boolean canMove(int x, int y, List<Rectangle> walls) {
+        Rectangle playerBounds = new Rectangle(x, y, 
+            (int) (originalWidth * scaleFactor), (int) (originalHeight * scaleFactor));
+        for (Rectangle wall : walls) {
+            if (playerBounds.intersects(wall)) {
+                return false;
+            }
+        }
         return true;
     }
 
+    /**
+     * Move the player up.
+     * @param walls The list of wall collision boxes in the game.
+     */
     public void moveUp(List<Rectangle> walls) {
         if (canMove(playerX, playerY - speed, walls)) {
             playerY -= speed;
@@ -163,6 +189,10 @@ public class Player {
         currentDirection = "up";
     }
 
+    /**
+     * Move the player down.
+     * @param walls The list of wall collision boxes in the game.
+     */
     public void moveDown(List<Rectangle> walls) {
         if (canMove(playerX, playerY + speed, walls)) {
             playerY += speed;
@@ -170,6 +200,10 @@ public class Player {
         currentDirection = "down";
     }
 
+    /**
+     * Move the player left.
+     * @param walls The list of wall collision boxes in the game.
+     */
     public void moveLeft(List<Rectangle> walls) {
         if (canMove(playerX - speed, playerY, walls)) {
             playerX -= speed;
@@ -177,6 +211,10 @@ public class Player {
         currentDirection = "left";
     }
 
+    /**
+     * Move the player right.
+     * @param walls The list of wall collision boxes in the game.
+     */
     public void moveRight(List<Rectangle> walls) {
         if (canMove(playerX + speed, playerY, walls)) {
             playerX += speed;
@@ -184,28 +222,26 @@ public class Player {
         currentDirection = "right";
     }
 
-    private boolean canMove(int x, int y, List<Rectangle> walls) {
-        Rectangle playerBounds = new Rectangle(x, y, (int)(originalWidth * scaleFactor), (int)(originalHeight * scaleFactor));
-        for (Rectangle wall : walls) {
-            if (playerBounds.intersects(wall)) {
-                return false; // 如果碰撞，不能移动
-            }
-        }
-        return true; // 没有碰撞，可以移动
-    }
-
+    /**
+     * Update the player's animation state.
+     * Update the animation frame when the player is moving, reset the animation when stationary.
+     */
     public void updateAnimation() {
         if (isMoving) {
             animationCounter++;
             if (animationCounter >= animationSpeed) {
                 animationCounter = 0;
-                animationFrame = (animationFrame + 1) % 2;  // 动画帧切换
+                animationFrame = (animationFrame + 1) % 2; // Switch animation frame (0 or 1)
             }
         } else {
-            animationFrame = 0; // 静止时显示第一帧
+            animationFrame = 0; // Draw the first frame when stationary
         }
     }
 
+    /**
+     * Draw the player character to the game screen.
+     * @param g Graphics object, used to draw the player sprite.
+     */
     public void draw(Graphics g) {
         Image imageToDraw;
         if (isMoving) {
@@ -246,11 +282,11 @@ public class Player {
             }
         }
 
-        int width, height;
-        // 根据缩放因子绘制主角，保持比例
-        if (!isMoving){
-            width = (int)(originalWidth * (scaleFactor - 0.2));
-            height = (int)(originalHeight * scaleFactor);
+        int width;
+        int height;
+        if (!isMoving) {
+            width = (int) (originalWidth * (scaleFactor - 0.2));
+            height = (int) (originalHeight * scaleFactor);
         } else {
             width = (int) (originalWidth * scaleFactor);
             height = (int) (originalHeight * scaleFactor);
@@ -260,28 +296,53 @@ public class Player {
         g.drawImage(imageToDraw, playerX, playerY, width, height, null);
     }
 
-    // 新增方法：设置缩放因子
+    /**
+     * Set the scale factor for the player.
+     * @param scaleFactor The scale factor to set.
+     */
     public void setScaleFactor(double scaleFactor) {
         this.scaleFactor = scaleFactor;
     }
+
+    /**
+     * Set the position of the player.
+     * @param x The x coordinate to set.
+     * @param y The y coordinate to set.
+     */
     public void setPosition(int x, int y) {
         this.playerX = x;
         this.playerY = y;
     }
-    // 新增方法：获取主角的 X 坐标
+
+    /**
+     * Get the x coordinate of the player.
+     * @return The x coordinate of the player.
+     */
     public int getX() {
         return playerX;
     }
 
-    // 新增方法：获取主角的 Y 坐标
+    /**
+     * Get the y coordinate of the player.
+     * @return The y coordinate of the player.
+     */
     public int getY() {
         return playerY;
     }
 
+    /**
+     * Get the collision box of the player.
+     * @return The collision box of the player.
+     */
     public Rectangle getCollisionBox() {
-        return new Rectangle(playerX, playerY, (int)(originalWidth * scaleFactor), (int)(originalHeight * scaleFactor));
+        return new Rectangle(playerX, playerY, 
+            (int) (originalWidth * scaleFactor), (int) (originalHeight * scaleFactor));
     }
 
+    /**
+     * Add an item to the player's inventory.
+     * @param item The item to add.
+     */
     public void addItem(Item item) {
         if (item.getName().equals("Key")) {
             hasKey = true;
@@ -292,6 +353,11 @@ public class Player {
         System.out.println("Picked up: " + item.getName());
     }
 
+    /**
+     * Check if the player has an item.
+     * @param itemName The name of the item to check.
+     * @return True if the player has the item, false otherwise.
+     */
     public boolean hasItem(String itemName) {
         if (itemName.equals("Key")) {
             return hasKey;
@@ -306,10 +372,18 @@ public class Player {
         return false;
     }
 
+    /**
+     * Get the player's inventory.
+     * @return The player's inventory.
+     */
     public ArrayList<Item> getInventory() {
         return inventory;
     }
 
+    /**
+     * Remove an item from the player's inventory.
+     * @param itemName The name of the item to remove.
+     */
     public void removeItem(String itemName) {
         inventory.removeIf(item -> item.getName().equals(itemName));
     }
