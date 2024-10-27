@@ -27,7 +27,7 @@ public class StartScreen extends JPanel {
         }
 
         startButton = new JButton("Start Game");
-        settingsButton = new JButton("Game Setting");
+        settingsButton = new JButton("Instruction");
 
         startButton.setBounds(350, 400, 100, 30);
         settingsButton.setBounds(350, 450, 100, 30);
@@ -65,6 +65,14 @@ public class StartScreen extends JPanel {
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, getWidth(), getHeight());
 
+        // 添加游戏标题
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Times New Roman", Font.BOLD, 40)); // 使用大号字体
+        FontMetrics fm = g.getFontMetrics();
+        String title = "Legend of the Ring";
+        int titleWidth = fm.stringWidth(title);
+        g.drawString(title, (getWidth() - titleWidth) / 2, 100); // 居中显示标题
+
         if (!showSettings) {
             if (playerImage != null) {
                 g.drawImage(playerImage, 400 - playerImage.getWidth() / 2, 300 - playerImage.getHeight() / 2, null);
@@ -76,7 +84,19 @@ public class StartScreen extends JPanel {
             settingsButton.setVisible(false);
             g.setColor(Color.WHITE);
             g.setFont(new Font("Arial", Font.PLAIN, 16));
-            g.drawString("sssss", 350, 300);
+            
+            // 修改这里以实现文本换行
+            String[] instructions = {
+                "Press E to interact with NPCs/pick up items",
+                "Press W/A/S/D to move",
+                "Hold R to check inventory"
+            };
+            int y = 250;
+            for (String line : instructions) {
+                g.drawString(line, 250, y);
+                y += 30; // 每行之间的间距
+            }
+            
             g.drawString("exit", 380, 520);
         }
     }

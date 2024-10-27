@@ -129,8 +129,8 @@ public class GamePanel extends JPanel implements MouseListener {
         
         // 初始化物品
         items = new ArrayList<>(); // 确保在此处初始化items
-        key = new Item(500, 300, "src/resources/images/key.png", "Key", "A mysterious key that might unlock something important.", 0.5); // 使用 0.5 作为缩放因子，你可以根据需要调整这个值
-        axe = new Item(400, 200, "src/resources/images/axe.png", "Axe", "A sturdy axe that could be useful for cutting things.", 1.4); // 设置Axe的位置和图片
+        key = new Item(655, 478, "src/resources/images/key.png", "Key", "A mysterious key that might unlock something important.", 0.5); // 使用 0.5 作为缩放因子，你可以根据需要调整这个值
+        axe = new Item(40, 73, "src/resources/images/axe.png", "Axe", "A sturdy axe that could be useful for cutting things.", 1.6); // 设置Axe的位置和图片
         ring = new Item(0, 0, "src/resources/images/ring.png", "Ring", "It is definitely not a gorgeous ring. However, it has a familiar vibe that seems to tempt you to put it on."); // 创建Ring物品
 
         // 将Ring物品添加到玩家的背包中
@@ -289,6 +289,40 @@ public class GamePanel extends JPanel implements MouseListener {
         wallsEast.add(new Rectangle(0, 340, 10, 260)); //left wall2
         wallsEast.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
         wallsEast.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        wallsEast.add(new Rectangle(790, 0, 10, 335)); // 空气墙
+        wallsEast.add(new Rectangle(790, 420, 10, 200)); // 空气墙
+        wallsEast.add(new Rectangle(680, 225, 120, 115)); // 空气墙
+        wallsEast.add(new Rectangle(0, 106, 193, 95)); // 空气墙
+        wallsEast.add(new Rectangle(0, 106, 150, 125));
+        wallsEast.add(new Rectangle(190, 130, 72, 54));
+        wallsEast.add(new Rectangle(118, 0, 800, 49));
+        wallsEast.add(new Rectangle(235, 0, 800, 73));
+        wallsEast.add(new Rectangle(350, 0, 50, 140));
+        wallsEast.add(new Rectangle(400, 0, 800, 88));
+        wallsEast.add(new Rectangle(658, 0, 800, 103));
+        wallsEast.add(new Rectangle(82, 322, 153, 81));
+        wallsEast.add(new Rectangle(157, 403, 123, 75));
+        wallsEast.add(new Rectangle(169, 478, 96, 57));
+        wallsEast.add(new Rectangle(0, 535, 247, 100));
+        wallsEast.add(new Rectangle(151, 290, 69, 57));
+        wallsEast.add(new Rectangle(195, 272, 40, 100));
+        wallsEast.add(new Rectangle(223, 260, 228, 53));
+        wallsEast.add(new Rectangle(262, 241, 195, 42)); // 空气墙
+        wallsEast.add(new Rectangle(334, 210, 163, 28));
+        wallsEast.add(new Rectangle(445, 180, 30, 55));
+        wallsEast.add(new Rectangle(475, 160, 125, 60));
+        wallsEast.add(new Rectangle(498, 295, 600, 40));
+        wallsEast.add(new Rectangle(550, 286, 60, 10));
+        wallsEast.add(new Rectangle(527, 337, 161, 36));
+        wallsEast.add(new Rectangle(320, 385, 92, 130));
+        wallsEast.add(new Rectangle(346, 517, 225, 100));
+        wallsEast.add(new Rectangle(412, 415, 78, 100));
+        wallsEast.add(new Rectangle(490, 439, 30, 100));
+        wallsEast.add(new Rectangle(520, 475, 30, 100));
+        wallsEast.add(new Rectangle(571, 540, 49, 100));
+        wallsEast.add(new Rectangle(736, 420, 100, 600));
+        wallsEast.add(new Rectangle(622, 570, 60, 100));
+        
 
         ArrayList<Rectangle> wallsWest = new ArrayList<>();
         wallsWest.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
@@ -296,6 +330,11 @@ public class GamePanel extends JPanel implements MouseListener {
         wallsWest.add(new Rectangle(790, 340, 10, 260)); // right wall2
         wallsWest.add(new Rectangle(0, 590, 800, 10)); // 底墙
         wallsWest.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
+        wallsWest.add(new Rectangle(322, 0, 478, 220)); // 空气墙
+        wallsWest.add(new Rectangle(0, 0, 127, 600)); // 空气墙
+        wallsWest.add(new Rectangle(127, 217, 103, 600)); // 空气墙
+        wallsWest.add(new Rectangle(205, 0, 200, 130)); // 空气墙
+        wallsWest.add(new Rectangle(230, 380, 800, 600)); // 空气墙
         //wallsWest.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
 
         ArrayList<Rectangle> wallsHidden = new ArrayList<>();
@@ -303,12 +342,51 @@ public class GamePanel extends JPanel implements MouseListener {
         wallsHidden.add(new Rectangle(0, 590, 800, 10)); // 底部墙
         //wallsHidden.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         wallsHidden.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+        wallsHidden.add(new Rectangle(0, 0, 10, 335)); // 空气墙
+        wallsHidden.add(new Rectangle(0, 420, 10, 600)); // 空气墙
+        wallsHidden.add(new Rectangle(790, 0, 10, 335)); // 空气墙
+        wallsHidden.add(new Rectangle(790, 420, 10, 200)); // 空气墙
+        wallsHidden.add(new Rectangle(680, 225, 120, 115)); // 空气墙
+        wallsHidden.add(new Rectangle(0, 106, 193, 95)); // 空气墙
+        wallsHidden.add(new Rectangle(0, 106, 150, 125));
+        wallsHidden.add(new Rectangle(190, 130, 72, 54));
+        wallsHidden.add(new Rectangle(118, 0, 800, 49));
+        wallsHidden.add(new Rectangle(235, 0, 800, 73));
+        wallsHidden.add(new Rectangle(350, 0, 50, 140));
+        wallsHidden.add(new Rectangle(400, 0, 800, 88));
+        wallsHidden.add(new Rectangle(658, 0, 800, 103));
+        wallsHidden.add(new Rectangle(82, 322, 153, 81));
+        wallsHidden.add(new Rectangle(157, 403, 123, 75));
+        wallsHidden.add(new Rectangle(169, 478, 96, 57));
+        wallsHidden.add(new Rectangle(0, 535, 247, 100));
+        wallsHidden.add(new Rectangle(151, 290, 69, 57));
+        wallsHidden.add(new Rectangle(195, 272, 40, 100));
+        wallsHidden.add(new Rectangle(223, 260, 228, 53));
+        wallsHidden.add(new Rectangle(262, 241, 195, 42)); // 空气墙
+        wallsHidden.add(new Rectangle(334, 210, 163, 28));
+        wallsHidden.add(new Rectangle(445, 180, 30, 55));
+        wallsHidden.add(new Rectangle(475, 160, 125, 60));
+        wallsHidden.add(new Rectangle(498, 295, 600, 40));
+        wallsHidden.add(new Rectangle(350, 0, 10, 600));
+
+
+
+
 
         ArrayList<Rectangle> wallsFinal = new ArrayList<>();
         wallsFinal.add(new Rectangle(0, 0, 800, 10)); // 顶部墙
-        //wallsFinal.add(new Rectangle(0, 590, 800, 10)); // 底部墙
+        wallsFinal.add(new Rectangle(0, 590, 800, 10)); // 底部墙
         wallsFinal.add(new Rectangle(0, 0, 10, 600)); // 左侧墙
         wallsFinal.add(new Rectangle(790, 0, 10, 600)); // 右侧墙
+
+        wallsFinal.add(new Rectangle(300, 0, 10, 600)); // 空气墙
+        wallsFinal.add(new Rectangle(480, 0, 10, 600)); // 空气墙
+        wallsFinal.add(new Rectangle(310, 270, 35, 600)); // 空气墙
+        wallsFinal.add(new Rectangle(445, 270, 35, 600)); // 空气墙
+        wallsFinal.add(new Rectangle(0, 0, 800, 115)); // 空气墙
+        wallsFinal.add(new Rectangle(0, 540, 800, 100)); // 空气墙
+        wallsFinal.add(new Rectangle(376, 131, 28, 36));
+        wallsFinal.add(new Rectangle(420, 131, 28, 36));
 
         // 将每个世界的空气墙与其对应的世界关联
         worldWalls.put("world_1", walls1);
@@ -642,12 +720,12 @@ public class GamePanel extends JPanel implements MouseListener {
         }
 
         // 绘制所有空气墙
-        
+        /* 
         g.setColor(Color.RED);
         for (Rectangle wall : walls) {
             g.fillRect(wall.x, wall.y, wall.width, wall.height);
         }
-        
+        */
 
         // 调用 drawNPCs 方法
         drawNPCs(g);
@@ -1164,21 +1242,21 @@ public class GamePanel extends JPanel implements MouseListener {
     private void initTeleport() {
         ArrayList<String[]> teleportDialogues = new ArrayList<>();
         teleportDialogues.add(new String[]{"Teleport", "You know this magic, it is a teleport waypoint which will probably lead you to somewhere familiar. Press E to teleport."});
-        teleport = new NPC(400, 300, "src/resources/images/teleport.png", teleportDialogues, 0.1);
+        teleport = new NPC(610, 238, "src/resources/images/teleport.png", teleportDialogues, 1);
     }
 
     private void checkTeleportInteraction() {
         if (currentWorld.equals("world_west") && teleport.isPlayerNear(player)) {
             if (!showTeleportMessage) {
                 showTeleportMessage = true;
-                teleportMessage = "Press E to enter the palace.";
+                teleportMessage = "You know this magic, it is a teleport waypoint which will probably lead you to somewhere familiar. Press E to teleport.";
             }
             if (KeyInputHandler.isInteractPressed()) {
                 if (player.hasItem("Golden key")) {
                     loadWorld(FINAL_WORLD);
-                    player.setPosition(370, 530); // 设置玩家在最终世界的初始位置
+                    player.setPosition(376, 461); // 设置玩家在最终世界的初始位置
                 } else {
-                    teleportMessage = "You need a golden key!";
+                    teleportMessage = "You need a permit to enter the palace!";
                 }
                 KeyInputHandler.resetInteractPressed();
             }
@@ -1212,7 +1290,7 @@ public class GamePanel extends JPanel implements MouseListener {
                     new String[]{"You", "Then what's your answer to my quest?"},
                     new String[]{"Vivian", "Yes, sure, i do."}
             ));
-            vivian0 = new NPC(400, 300, "src/resources/images/Vivian0.png", vivian0Dialogues, 1.5);
+            vivian0 = new NPC(376, 131, "src/resources/images/Vivian0.png", vivian0Dialogues, 2);
         } else if (kill_count == 1) {
             ArrayList<String[]> soldierDialogues = new ArrayList<>(Arrays.asList(
                     new String[]{"Narrative", "This palace feels very familiar. You must have reached your final destination."},
@@ -1223,7 +1301,7 @@ public class GamePanel extends JPanel implements MouseListener {
                     new String[]{"Narrative", "Your enemy died. A sudden emptiness in your heart prevents you from feeling happy for whatever happened. Now that your love is gone, you should go to your people and fulfill your responsibility as the king, but you are just tired."},
                     new String[]{"You", "(kiss your ring) Good bye Vivian."}
             ));
-            soldier = new NPC(400, 300, "src/resources/images/soldier.png", soldierDialogues, 1.5);
+            soldier = new NPC(420, 131, "src/resources/images/soldier.png", soldierDialogues, 2);
         } else if (kill_count == 2) {
             ArrayList<String[]> vivianDialogues = new ArrayList<>(Arrays.asList(
                     new String[]{"Narrative", "You enter your palace without hesitance. After all, you have been so relentless so far just to go to Vivian as fast as possible. There is no time to lose."},
@@ -1249,8 +1327,8 @@ public class GamePanel extends JPanel implements MouseListener {
                     new String[]{"Hank", "Thorian, stop talking. I need to stop the bleeding."},
                     new String[]{"Narrative", "As more blood flows out of your body, your mind starts to wander off. Hank was not only your guard, he was once your friend when you were still nobody. You are not regretful, you never cry over spilt milk. You are just wondering, was Vivian really trying to give you a second chance? What if you make another choice…"}
             ));
-            vivian = new NPC(400, 300, "src/resources/images/Vivian.png", vivianDialogues, 1.5);
-            hank = new NPC(500, 300, "src/resources/images/Hank.png", new ArrayList<>(), 1.5);
+            vivian = new NPC(376, 131, "src/resources/images/Vivian.png", vivianDialogues, 2);
+            hank = new NPC(420, 131, "src/resources/images/Hank.png", new ArrayList<>(), 2);
         }
     }
 
