@@ -42,7 +42,7 @@ There are three different endings in *Legend of the Ring*. To experience the bes
 
 #### Bad (True) Ending
 1. Pick up a key from the maze in the East World.
-2. Go to the bottom-right corner of the East World maze and continue right to find a hidden world. Pick up an ax in the hidden world.
+2. Go to the bottom-right corner of the East World maze and continue right to find a hidden world. Pick up an axe in the hidden world.
 3. Unlock the North World and use the ax. *(No need to solve the puzzle)*
 4. Open the treasure box and pick up the item.
 5. Unlock the South World and use the item. *(No need to solve the puzzle)*
