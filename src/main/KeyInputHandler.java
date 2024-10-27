@@ -1,3 +1,11 @@
+/**
+ *
+ * @author Xiangjie Dong
+ * @id 2072645
+ * @author Yanhang Luo
+ * @id 2123061
+ */
+
 package main;
 
 import java.awt.event.KeyEvent;
