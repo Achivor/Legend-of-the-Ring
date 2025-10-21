@@ -1,3 +1,0 @@
-For grader:
-
-Please run RPGGame.java (containing the main class) at "src/main/RPGGame.java".
